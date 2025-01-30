@@ -33,12 +33,18 @@ def recognize_speech():
         st.info("Listening... Speak now.")
         recognizer.adjust_for_ambient_noise(source)
         try:
-            audio = recognizer.listen(source, timeout=5)
+            audio = recognizer.listen(source, timeout=10)  # Increased timeout
+            print("Audio captured, now recognizing...")
             text = recognizer.recognize_google(audio)  # Convert speech to text
+            print(f"Recognized text: {text}")  # Debug line to check the recognized text
             return text
         except sr.UnknownValueError:
+            st.warning("Sorry, I couldn't understand that.")
+            print("Error: Could not understand audio.")  # More debugging
             return "Sorry, I couldn't understand that."
-        except sr.RequestError:
+        except sr.RequestError as e:
+            st.warning(f"Speech recognition service is unavailable: {e}")
+            print(f"Error: {e}")  # More debugging
             return "Speech recognition service is unavailable."
 
 # Function to speak out the response (avoiding run loop errors)
