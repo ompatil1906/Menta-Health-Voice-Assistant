@@ -44,7 +44,7 @@ for message in st.session_state.chat_session.history:
         st.markdown(message.parts[0].text)
 
 # Input field for user's message
-user_prompt = st.chat_input("Ask Chatbot...")
+user_prompt = st.chat_input("Ask Question to Chatbot...")
 if user_prompt:
     # Add user's message to chat and display it
     st.chat_message("user").markdown(user_prompt)
