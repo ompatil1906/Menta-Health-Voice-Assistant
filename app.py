@@ -1,7 +1,7 @@
 import os
 import streamlit as st
 from dotenv import load_dotenv
-import google.generativeai as gen_ai
+from openai import OpenAI
 import speech_recognition as sr
 import pyttsx3
 import threading
@@ -12,24 +12,24 @@ load_dotenv()
 
 # Configure Streamlit page settings
 st.set_page_config(
-    page_title="Voice-Enabled ChatBot",
+    page_title="Voice-Enabled ChatBot with Groq",
     page_icon=":brain:",
     layout="centered",
 )
 
-GOOGLE_API_KEY = os.getenv("GOOGLE_API_KEY")
+GROQ_API_KEY = os.getenv("GROQ_API_KEY")
 
-# Set up Google Gemini-Pro AI model
-gen_ai.configure(api_key=GOOGLE_API_KEY)
-model = gen_ai.GenerativeModel('gemini-pro')
-
-# Initialize chat session
-if "chat_session" not in st.session_state:
-    st.session_state.chat_session = model.start_chat(history=[])
+# Set up Groq client
+client = OpenAI(
+    api_key=GROQ_API_KEY,
+    base_url="https://api.groq.com/openai/v1",
+)
 
 # Initialize message history
 if "messages" not in st.session_state:
-    st.session_state.messages = []
+    st.session_state.messages = [
+        {"role": "system", "content": "You are a helpful assistant."}
+    ]
 
 # State to control listening and stopping AI response
 if "listening" not in st.session_state:
@@ -76,15 +76,17 @@ def stop_speech():
     if st.session_state.speech_thread and st.session_state.speech_thread.is_alive():
         # Forcefully stop the speech thread
         st.session_state.stop_response = True
-        st.session_state.speech_thread.join(timeout=0.1)  # Wait for the thread to finish
+        st.session_state.speech_thread.join(timeout=0.1)
         st.session_state.speech_thread = None
         st.warning("AI response stopped by user.")
 
 # Display chatbot title
-st.title("🎤 Voice-Enabled ChatBot")
+st.title("🎤 Voice-Enabled ChatBot with Groq")
 
 # Display all previous chat messages
 for message in st.session_state.messages:
+    if message["role"] == "system":
+        continue
     role = message["role"]
     content = message["content"]
     with st.chat_message(role):
@@ -106,20 +108,27 @@ if st.session_state.listening:
         st.session_state.messages.append({"role": "user", "content": user_prompt})
         st.chat_message("user").markdown(f"**You:** {user_prompt}")
 
-        # Get response from Gemini-Pro
-        gemini_response = st.session_state.chat_session.send_message(user_prompt)
+        # Get response from Groq
+        response = client.chat.completions.create(
+            model="mixtral-8x7b-32768",  # or "llama2-70b-4096"
+            messages=st.session_state.messages,
+            temperature=0.5,
+            max_tokens=1024,
+        )
+
+        ai_response = response.choices[0].message.content
 
         # Append AI response to chat history
-        st.session_state.messages.append({"role": "assistant", "content": gemini_response.text})
+        st.session_state.messages.append({"role": "assistant", "content": ai_response})
 
-        # Display Gemini-Pro's response
+        # Display response
         with st.chat_message("assistant"):
-            st.markdown(gemini_response.text)
+            st.markdown(ai_response)
 
         # Check if the stop response flag is not set before speaking
         if not st.session_state.stop_response:
             # Speak out the response
-            speak_text(gemini_response.text)
+            speak_text(ai_response)
         else:
             st.warning("AI response stopped by user.")
 
