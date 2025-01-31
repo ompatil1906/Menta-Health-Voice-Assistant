@@ -27,6 +27,10 @@ model = gen_ai.GenerativeModel('gemini-pro')
 if "chat_session" not in st.session_state:
     st.session_state.chat_session = model.start_chat(history=[])
 
+# Initialize message history
+if "messages" not in st.session_state:
+    st.session_state.messages = []  # Stores all chat messages
+
 # State to control listening and stopping AI response
 if "listening" not in st.session_state:
     st.session_state.listening = False  # Initially, not listening
