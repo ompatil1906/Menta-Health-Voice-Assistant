@@ -46,7 +46,7 @@ def recognize_speech():
         recognizer.adjust_for_ambient_noise(source)
         try:
             audio = recognizer.listen(source, timeout=5)
-            text = recognizer.recognize_google(audio,language="en-US")  # Convert speech to text
+            text = recognizer.recognize_google(audio, language="en-US")  # Convert speech to text
             return text
         except sr.UnknownValueError:
             st.warning("Sorry, I couldn't understand that.")
@@ -77,6 +77,13 @@ def stop_speech():
 # Display chatbot title
 st.title("🎤 Voice-Enabled ChatBot")
 
+# Display all previous chat messages
+for message in st.session_state.messages:
+    role = message["role"]
+    content = message["content"]
+    with st.chat_message(role):
+        st.markdown(content)
+
 # Button to toggle listening state
 if st.button("🎙️ Start Listening" if not st.session_state.listening else "🔊 Stop Listening"):
     st.session_state.listening = not st.session_state.listening  # Toggle state
@@ -89,10 +96,15 @@ if st.button("⏹️ Stop AI Response"):
 if st.session_state.listening:
     user_prompt = recognize_speech()
     if user_prompt:
+        # Append user message to chat history
+        st.session_state.messages.append({"role": "user", "content": user_prompt})
         st.chat_message("user").markdown(f"**You:** {user_prompt}")
 
         # Get response from Gemini-Pro
         gemini_response = st.session_state.chat_session.send_message(user_prompt)
+
+        # Append AI response to chat history
+        st.session_state.messages.append({"role": "assistant", "content": gemini_response.text})
 
         # Display Gemini-Pro's response
         with st.chat_message("assistant"):
