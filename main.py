@@ -42,7 +42,7 @@ def recognize_speech():
         recognizer.adjust_for_ambient_noise(source)
         try:
             audio = recognizer.listen(source, timeout=5)
-            text = recognizer.recognize_google(audio)  # Convert speech to text
+            text = recognizer.recognize_google(audio,language="en-US")  # Convert speech to text
             return text
         except sr.UnknownValueError:
             st.warning("Sorry, I couldn't understand that.")
