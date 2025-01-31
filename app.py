@@ -25,20 +25,18 @@ client = OpenAI(
     base_url="https://api.groq.com/openai/v1",
 )
 
-# Initialize message history
+# Initialize session states
 if "messages" not in st.session_state:
     st.session_state.messages = [
-        {"role": "system", "content": "You are a helpful assistant."}
+        {"role": "system", "content": "You are a helpful mental health assistant."}
     ]
 
-# State to control listening and stopping AI response
 if "listening" not in st.session_state:
     st.session_state.listening = False
 
-if "stop_response" not in st.session_state:
-    st.session_state.stop_response = False
+if "last_response" not in st.session_state:
+    st.session_state.last_response = ""
 
-# Global variable to control the speech thread
 if "speech_thread" not in st.session_state:
     st.session_state.speech_thread = None
 
@@ -54,86 +52,90 @@ def recognize_speech():
             return text
         except sr.UnknownValueError:
             st.warning("Sorry, I couldn't understand that.")
-            return "Sorry, I couldn't understand that."
+            return ""
         except sr.RequestError:
             st.warning("Speech recognition service is unavailable.")
-            return "Speech recognition service is unavailable."
+            return ""
 
-# Function to speak out the response
+# Text-to-speech function
 def speak_text(text):
     def run_speech():
         engine = pyttsx3.init()
-        engine.setProperty("rate", 150)  # Adjust speed
+        engine.setProperty("rate", 150)
         engine.say(text)
         engine.runAndWait()
-
-    # Start the speech thread
+    
+    if st.session_state.speech_thread and st.session_state.speech_thread.is_alive():
+        st.warning("Already speaking!")
+        return
+    
     st.session_state.speech_thread = threading.Thread(target=run_speech, daemon=True)
     st.session_state.speech_thread.start()
 
-# Function to stop the speech
+# Function to stop speech
 def stop_speech():
     if st.session_state.speech_thread and st.session_state.speech_thread.is_alive():
-        # Forcefully stop the speech thread
-        st.session_state.stop_response = True
-        st.session_state.speech_thread.join(timeout=0.1)
-        st.session_state.speech_thread = None
-        st.warning("AI response stopped by user.")
+        engine = pyttsx3.init()
+        engine.stop()
+        st.session_state.speech_thread.join()
+        st.success("Speech stopped!")
 
-# Display chatbot title
+# Display UI
 st.title("🎤 Mental Health Voice Assistant")
 
-# Display all previous chat messages
+# Display chat history
 for message in st.session_state.messages:
     if message["role"] == "system":
         continue
-    role = message["role"]
-    content = message["content"]
-    with st.chat_message(role):
-        st.markdown(content)
+    with st.chat_message(message["role"]):
+        st.markdown(message["content"])
 
-# Button to toggle listening state
-if st.button("🎙️ Start Listening" if not st.session_state.listening else "🔊 Stop Listening"):
+# Control buttons layout
+col1, col2, col3 = st.columns(3)
+with col1:
+    listen_btn = st.button("🎙️ Start Listening" if not st.session_state.listening else "🔴 Stop Listening")
+
+with col2:
+    speak_btn = st.button("🔊 Speak Response", disabled=not st.session_state.last_response)
+
+with col3:
+    stop_btn = st.button("⏹️ Stop Speaking")
+
+# Handle listening toggle
+if listen_btn:
     st.session_state.listening = not st.session_state.listening
 
-# Button to stop AI response
-if st.button("⏹️ Stop AI Response"):
-    stop_speech()
-
-# Start listening and processing user prompt
+# Process voice input
 if st.session_state.listening:
-    user_prompt = recognize_speech()
-    if user_prompt:
-        # Append user message to chat history
-        st.session_state.messages.append({"role": "user", "content": user_prompt})
-        st.chat_message("user").markdown(f"**You:** {user_prompt}")
+    user_input = recognize_speech()
+    if user_input:
+        # Add user message to history
+        st.session_state.messages.append({"role": "user", "content": user_input})
+        with st.chat_message("user"):
+            st.markdown(user_input)
 
-        # Get response from Groq
+        # Get AI response
         response = client.chat.completions.create(
-            model="mixtral-8x7b-32768",  # or "llama2-70b-4096"
+            model="mixtral-8x7b-32768",
             messages=st.session_state.messages,
             temperature=0.5,
             max_tokens=1024,
         )
 
         ai_response = response.choices[0].message.content
-
-        # Append AI response to chat history
+        
+        # Store response and update chat
+        st.session_state.last_response = ai_response
         st.session_state.messages.append({"role": "assistant", "content": ai_response})
-
-        # Display response
         with st.chat_message("assistant"):
             st.markdown(ai_response)
 
-        # Check if the stop response flag is not set before speaking
-        if not st.session_state.stop_response:
-            # Speak out the response
-            speak_text(ai_response)
-        else:
-            st.warning("AI response stopped by user.")
+    st.session_state.listening = False
 
-        # Reset stop response after speaking or after stopping
-        st.session_state.stop_response = False
+# Handle speech requests
+if speak_btn and st.session_state.last_response:
+    speak_text(st.session_state.last_response)
 
-        # Stop listening after response is given
-        st.session_state.listening = False
+if stop_btn:
+    stop_speech()
+    
