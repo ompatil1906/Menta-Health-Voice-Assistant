@@ -1,11 +1,11 @@
 import os
-import streamlit as st  # type: ignore
-from dotenv import load_dotenv  # type: ignore
-import google.generativeai as gen_ai  # type: ignore
-import speech_recognition as sr  # Speech-to-text
-import pyttsx3  # Text-to-speech (offline)
-import threading  # To prevent run loop errors
-import time  # For delay in stopping the speech
+import streamlit as st
+from dotenv import load_dotenv
+import google.generativeai as gen_ai
+import speech_recognition as sr
+import pyttsx3
+import threading
+import time
 
 # Load environment variables
 load_dotenv()
@@ -29,14 +29,18 @@ if "chat_session" not in st.session_state:
 
 # Initialize message history
 if "messages" not in st.session_state:
-    st.session_state.messages = []  # Stores all chat messages
+    st.session_state.messages = []
 
 # State to control listening and stopping AI response
 if "listening" not in st.session_state:
-    st.session_state.listening = False  # Initially, not listening
+    st.session_state.listening = False
 
 if "stop_response" not in st.session_state:
-    st.session_state.stop_response = False  # Initially, response is not stopped
+    st.session_state.stop_response = False
+
+# Global variable to control the speech thread
+if "speech_thread" not in st.session_state:
+    st.session_state.speech_thread = None
 
 # Function to recognize speech input
 def recognize_speech():
@@ -46,7 +50,7 @@ def recognize_speech():
         recognizer.adjust_for_ambient_noise(source)
         try:
             audio = recognizer.listen(source, timeout=5)
-            text = recognizer.recognize_google(audio, language="en-US")  # Convert speech to text
+            text = recognizer.recognize_google(audio, language="en-US")
             return text
         except sr.UnknownValueError:
             st.warning("Sorry, I couldn't understand that.")
@@ -55,24 +59,26 @@ def recognize_speech():
             st.warning("Speech recognition service is unavailable.")
             return "Speech recognition service is unavailable."
 
-# Function to speak out the response (avoiding run loop errors)
+# Function to speak out the response
 def speak_text(text):
-    # Check if stop response is triggered
-    if st.session_state.stop_response:
-        st.warning("AI response stopped by user.")
-        return
-
     def run_speech():
         engine = pyttsx3.init()
         engine.setProperty("rate", 150)  # Adjust speed
         engine.say(text)
         engine.runAndWait()
 
-    threading.Thread(target=run_speech, daemon=True).start()
+    # Start the speech thread
+    st.session_state.speech_thread = threading.Thread(target=run_speech, daemon=True)
+    st.session_state.speech_thread.start()
 
 # Function to stop the speech
 def stop_speech():
-    st.session_state.stop_response = True
+    if st.session_state.speech_thread and st.session_state.speech_thread.is_alive():
+        # Forcefully stop the speech thread
+        st.session_state.stop_response = True
+        st.session_state.speech_thread.join(timeout=0.1)  # Wait for the thread to finish
+        st.session_state.speech_thread = None
+        st.warning("AI response stopped by user.")
 
 # Display chatbot title
 st.title("🎤 Voice-Enabled ChatBot")
@@ -86,7 +92,7 @@ for message in st.session_state.messages:
 
 # Button to toggle listening state
 if st.button("🎙️ Start Listening" if not st.session_state.listening else "🔊 Stop Listening"):
-    st.session_state.listening = not st.session_state.listening  # Toggle state
+    st.session_state.listening = not st.session_state.listening
 
 # Button to stop AI response
 if st.button("⏹️ Stop AI Response"):
@@ -118,7 +124,7 @@ if st.session_state.listening:
             st.warning("AI response stopped by user.")
 
         # Reset stop response after speaking or after stopping
-        st.session_state.stop_response = False  # Reset after response
+        st.session_state.stop_response = False
 
         # Stop listening after response is given
-        st.session_state.listening = False  # Reset listening state after response
+        st.session_state.listening = False
