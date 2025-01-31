@@ -12,7 +12,7 @@ load_dotenv()
 
 # Configure Streamlit page settings
 st.set_page_config(
-    page_title="Voice-Enabled ChatBot with Groq",
+    page_title="Mental health Voice Assistant",
     page_icon=":brain:",
     layout="centered",
 )
@@ -81,7 +81,7 @@ def stop_speech():
         st.warning("AI response stopped by user.")
 
 # Display chatbot title
-st.title("🎤 Voice-Enabled ChatBot with Groq")
+st.title("🎤 Mental Health Voice Assistant")
 
 # Display all previous chat messages
 for message in st.session_state.messages:
