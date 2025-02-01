@@ -27,7 +27,7 @@ class MentalHealthAssistant:
         self.messages.append({"role": "user", "content": user_input})
         
         response = self.groq_client.chat.completions.create(
-            model="mixtral-8x7b-32768",
+            model="llama3-70b-8192",
             messages=self.messages,
             temperature=0.5,
             max_tokens=1024,
