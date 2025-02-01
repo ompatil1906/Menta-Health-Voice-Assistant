@@ -44,7 +44,7 @@ class MentalHealthAssistant:
             st.info("Listening... Speak now.")
             recognizer.adjust_for_ambient_noise(source)
             try:
-                    audio = recognizer.listen(source, timeout=5)
+                    audio = recognizer.listen(source, timeout=10)
                     text = recognizer.recognize_google(audio, language="en-US")
                     return text
             except (sr.UnknownValueError, sr.RequestError, sr.WaitTimeoutError):
