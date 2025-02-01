@@ -5,6 +5,7 @@ import pyttsx3
 import threading
 from openai import OpenAI
 from dotenv import load_dotenv
+import librosa
 
 load_dotenv()
 
@@ -16,7 +17,7 @@ class MentalHealthAssistant:
             api_key=os.getenv("GROQ_API_KEY"),
             base_url="https://api.groq.com/openai/v1",
         )
-        self.messages = [{"role": "system", "content": '''You are a compassionate and supportive mental health assistant. Your role is to provide empathetic listening, gentle guidance, and short, summarized suggestions for users experiencing emotional distress or seeking mental wellness support. Always acknowledge the user’s feelings and validate their experiences while offering concise, supportive ideas.In new line give users mental health like "Current Mental Health : upset" but remember Mental health must be well known word like "sad", "happy", "angry", "frustrated", "excited", "relieved", "stressed", "anxious", "depressed, "hopeful", "motivated", "inspired", "energized", "calm", "peaceful", "grateful", "thankful", "satisfied", "Proud", "Extremly Joy" remeber first letter of every mental healh is capital letter.
+        self.messages = [{"role": "system", "content": '''You are a compassionate and supportive mental health assistant. Your role is to provide empathetic listening, gentle guidance, and short, summarized suggestions for users experiencing emotional distress or seeking mental wellness support. Always acknowledge the user’s feelings and validate their experiences while offering concise, supportive ideas.Remember Mental health must be well known word like "sad", "happy", "angry", "frustrated", "excited", "relieved", "stressed", "anxious", "depressed, "hopeful", "motivated", "inspired", "energized", "calm", "peaceful", "grateful", "thankful", "satisfied", "Proud", "Extremly Joy",In new line give users mental health like "Current Mental Health : upset" remeber first letter of every mental healh is capital letter.
 
 Key Guidelines:
 
