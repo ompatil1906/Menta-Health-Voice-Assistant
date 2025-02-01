@@ -18,7 +18,7 @@ class MentalHealthAssistant:
         )
         self.messages = [{"role": "system", "content": "You are a helpful mental health assistant."}]
 
-        self.speech_engine = None  # Changed from initializing here
+        self.speech_engine = None 
         self.speech_thread = None
         self.current_response = ""
         self._stop_speaking = False
