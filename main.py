@@ -3,9 +3,7 @@ import speech_recognition as sr
 import streamlit as st
 import pyttsx3
 import threading
-from openai import OpenAI
 from dotenv import load_dotenv
-import librosa
 
 load_dotenv()
 
