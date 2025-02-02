@@ -71,7 +71,6 @@ Example Start-Up Message:
     def recognize_speech(self):
         recognizer = sr.Recognizer()
         with sr.Microphone() as source:
-            st.info("Listening... Speak now.")
             recognizer.adjust_for_ambient_noise(source)
             try:
                 audio = recognizer.listen(source, timeout=20)
