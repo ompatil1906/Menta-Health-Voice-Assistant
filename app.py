@@ -29,11 +29,7 @@ for message in st.session_state.assistant.messages:
 col1, col2, col3 = st.columns(3)
 with col1:
     listen_btn = st.button("🎙️ Start Listening" if not st.session_state.listening else "🔴 Stop Listening")
-
 with col2:
-    speak_btn = st.button("🔊 Speak Response", disabled=not st.session_state.assistant.current_response)
-
-with col3:
     stop_btn = st.button("⏹️ Stop Speaking")
 
 # Handle UI interactions
@@ -54,11 +50,7 @@ if st.session_state.listening:
             st.markdown(ai_response)
         st.rerun()
 
-if speak_btn:
-    if not st.session_state.assistant.is_speaking():
-        st.session_state.assistant.speak_response(
-            st.session_state.assistant.current_response
-        )
+
 
 if stop_btn:
     st.session_state.assistant.stop_speech()

@@ -5,11 +5,9 @@ import pyttsx3
 import threading
 from openai import OpenAI
 from dotenv import load_dotenv
- 
+import re  # Import regex for text cleaning
 
 load_dotenv()
-
-
 
 class MentalHealthAssistant:
     def __init__(self):
@@ -30,16 +28,16 @@ class MentalHealthAssistant:
 - Crisis words → Immediate resources 🆘
 
 **Examples:**
-User: "today im going to clg"
+:User   "today im going to clg"
 Bot: "Oh good! First class? 👀" 
 
-User: "had fight with bf"
+:User   "had fight with bf"
 Bot: "Ugh fights suck 😮💨 Try texting him this: 'Can we talk later?'"
 
-User: "i failed exam"
+:User   "i failed exam"
 Bot: "Oof that stings 💔 Wanna rant or get tips?" 
 
-User: "i wanna die"
+:User   "i wanna die"
 Bot: "🚨 Please call 1-800-273-8255 now. I'm here too."
 Example Start-Up Message:
 
@@ -64,6 +62,10 @@ Example Start-Up Message:
         ai_response = response.choices[0].message.content
         self.messages.append({"role": "assistant", "content": ai_response})
         self.current_response = ai_response
+        
+        # Automatically speak the response
+        self.speak(ai_response)
+        
         return ai_response
 
     def recognize_speech(self):
@@ -72,11 +74,11 @@ Example Start-Up Message:
             st.info("Listening... Speak now.")
             recognizer.adjust_for_ambient_noise(source)
             try:
-                    audio = recognizer.listen(source, timeout=20)
-                    text = recognizer.recognize_google(audio, language="en-US")
-                    return text
+                audio = recognizer.listen(source, timeout=20)
+                text = recognizer.recognize_google(audio, language="en-US")
+                return text
             except (sr.UnknownValueError, sr.RequestError, sr.WaitTimeoutError):
-                    return None
+                return None
 
     def _speak(self, text):
         """Handle text-to-speech with engine reinitialization"""
@@ -84,6 +86,9 @@ Example Start-Up Message:
         self.speech_engine = pyttsx3.init()
         self.speech_engine.setProperty("rate", 150)
         
+        # Clean the text to remove emojis and symbols
+        clean_text = self.clean_text(text)
+
         # Add event callbacks for proper cleanup
         def on_start(name):
             if self._stop_speaking:
@@ -96,12 +101,17 @@ Example Start-Up Message:
         self.speech_engine.connect('started-utterance', on_start)
         self.speech_engine.connect('started-word', on_word)
         
-        self.speech_engine.say(text)
+        self.speech_engine.say(clean_text)
         self.speech_engine.runAndWait()
         self.speech_engine = None  # Clean up engine after use
 
-    def speak_response(self, text):
-        """Start speaking response thread"""
+    def clean_text(self, text):
+        """Remove emojis and non-alphanumeric characters from the text"""
+        # Regex to remove emojis and special characters
+        return re.sub(r'[^\w\s,.!?]', '', text)
+
+    def speak(self, text):
+        """Start speaking response directly"""
         if self.is_speaking():
             return False
         
