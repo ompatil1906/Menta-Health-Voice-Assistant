@@ -1,6 +1,6 @@
 import streamlit as st
 import time
-from main import MentalHealthAssistant
+from main import MentalHealthAssistant  # Ensure the MentalHealthAssistant class is imported
 
 # Initialize session state and assistant
 if "assistant" not in st.session_state:
@@ -11,7 +11,7 @@ if "listening" not in st.session_state:
 
 # Configure Streamlit page
 st.set_page_config(
-    page_title="Mental health Voice Assistant",
+    page_title="Mental Health Voice Assistant",
     page_icon=":brain:",
     layout="centered",
 )
@@ -21,7 +21,7 @@ st.title("🎤 Mental Health Voice Assistant")
 # Display chat history
 for message in st.session_state.assistant.messages:
     if message["role"] == "system":
-        continue
+        continue  # Skip system messages
     with st.chat_message(message["role"]):
         st.markdown(message["content"])
 
@@ -31,12 +31,14 @@ with col1:
     listen_btn = st.button("🎙️ Start Listening" if not st.session_state.listening else "🔴 Stop Listening")
 with col2:
     stop_btn = st.button("⏹️ Stop Speaking")
+with col3:
+    save_btn = st.button("💾 Save Conversation")
 
 # Handle UI interactions
 if listen_btn:
     st.session_state.listening = not st.session_state.listening
     if st.session_state.listening:
-        st.rerun()
+        st.rerun()  # Rerun to update the UI
 
 if st.session_state.listening:
     user_input = st.session_state.assistant.recognize_speech()
@@ -48,17 +50,19 @@ if st.session_state.listening:
         ai_response = st.session_state.assistant.process_user_input(user_input)
         with st.chat_message("assistant"):
             st.markdown(ai_response)
-        st.rerun()
-
-
+        st.rerun()  # Rerun to update the UI
 
 if stop_btn:
     st.session_state.assistant.stop_speech()
-    st.rerun()
+    st.rerun()  # Rerun to update the UI
+
+if save_btn:
+    st.session_state.assistant.save_conversation()
+    st.rerun()  # Rerun to update the UI
 
 # Handle listening status display
 if st.session_state.listening:
     st.info("Listening... Speak now.")
     # Add small delay to prevent constant rerun
     time.sleep(0.1)
-    st.rerun()
+    st.rerun()  # Rerun to update the UI

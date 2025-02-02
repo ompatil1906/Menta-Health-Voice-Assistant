@@ -135,3 +135,12 @@ Example Start-Up Message:
     def is_speaking(self):
         """Check if currently speaking"""
         return self.speech_thread and self.speech_thread.is_alive()
+
+    def save_conversation(self, filename="conversation.txt"):
+        """Save the full conversation to a text file"""
+        with open(filename, "w",encoding="utf-8") as file:
+            for message in self.messages[1:]:
+                role = message["role"]
+                content = message["content"]
+                file.write(f"{role.capitalize()}: {content}\n")
+        st.success(f"Conversation saved to {filename}")
