@@ -1,4 +1,5 @@
 streamlit
+sigma-ui
 SpeechRecognition
 pyttsx3
 google.generativeai
