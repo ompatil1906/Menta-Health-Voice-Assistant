@@ -162,18 +162,22 @@ Example Start-Up Message:
 
         if not conversation_text.strip():
             return "No conversation data available for analysis."
-
-        # Debug: Check what is being sent to the LLM
-        print("🔍 Conversation sent to LLM:\n", conversation_text)
-
         try:
             # Send conversation to LLM for mental health analysis
             response = self.groq_client.chat.completions.create(
                 model="llama-3.3-70b-versatile",
-                messages=[
-                    {"role": "system", "content": 
-                        "You are a psychologist AI. Analyze the user's conversation and detect their mental health."
-                        "Provide a clear mental health status, a brief summary, and 3 actionable recommendations."
+                messages=[{"role": "system", "content": 
+    "You are a psychologist AI. Analyze the user's conversation and detect their mental health status.\n\n"
+    "**Current Mental Health:**\n[Emoji + Status]\n\n"
+    "**Summary:**\n[Brief description of user's emotional state and key concerns]\n\n"
+    "**Recommendations:**\n"
+    "- [Actionable Tip 1]\n"
+    "- [Actionable Tip 2]\n"
+    "- [Actionable Tip 3]\n\n"
+    "Make sure each section appears on a new line for clarity.\n"
+    "Use an appropriate emoji to represent the user's mental state (e.g., 😊 Happy, 😟 Stressed, 😔 Sad, 😢 Depressed, 😌 Relaxed, 😵‍💫 Overwhelmed, etc.)."
+    "Make sure your analysis is concise, clear, and supportive."
+    "Base your assessment on the conversation context."
                     },
                     {"role": "user", "content": conversation_text},
                 ],
@@ -182,11 +186,6 @@ Example Start-Up Message:
             )
 
             analysis_result = response.choices[0].message.content.strip()
-
-            if not analysis_result:
-                return "⚠️ No response from LLM. Please try again."
-
-            print("✅ AI Analysis Output:\n", analysis_result)  # Debugging output
 
             return analysis_result
 
