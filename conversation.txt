@@ -1,2 +1,6 @@
 User: hello
 Assistant: Hey, what's up? 😊
+User: I am fine
+Assistant: That's great, anything fun happenin' today? 🤔❓
+User: I got on the 20 %
+Assistant: Congrats, you're in the top 20%, what's next? 🎉❓

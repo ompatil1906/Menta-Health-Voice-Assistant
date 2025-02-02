@@ -144,3 +144,53 @@ Example Start-Up Message:
                 content = message["content"]
                 file.write(f"{role.capitalize()}: {content}\n")
         st.success(f"Conversation saved to {filename}")
+
+    def detect_mental_health(self):
+        """Analyzes conversation using LLM and detects mental health status."""
+        filename = "conversation.txt"
+        
+        # Save conversation first
+        with open(filename, "w", encoding="utf-8") as file:
+            for message in self.messages[1:]:  # Skip system prompt
+                role = message["role"]
+                content = message["content"]
+                file.write(f"{role.capitalize()}: {content}\n")
+
+        # Read the conversation for analysis
+        with open(filename, "r", encoding="utf-8") as file:
+            conversation_text = file.read()
+
+        if not conversation_text.strip():
+            return "No conversation data available for analysis."
+
+        # Debug: Check what is being sent to the LLM
+        print("🔍 Conversation sent to LLM:\n", conversation_text)
+
+        try:
+            # Send conversation to LLM for mental health analysis
+            response = self.groq_client.chat.completions.create(
+                model="llama-3.3-70b-versatile",
+                messages=[
+                    {"role": "system", "content": 
+                        "You are a psychologist AI. Analyze the user's conversation and detect their mental health."
+                        "Provide a clear mental health status, a brief summary, and 3 actionable recommendations."
+                    },
+                    {"role": "user", "content": conversation_text},
+                ],
+                temperature=0.7,
+                max_tokens=300,
+            )
+
+            analysis_result = response.choices[0].message.content.strip()
+
+            if not analysis_result:
+                return "⚠️ No response from LLM. Please try again."
+
+            print("✅ AI Analysis Output:\n", analysis_result)  # Debugging output
+
+            return analysis_result
+
+        except Exception as e:
+            print(f"❌ Error in mental health analysis: {str(e)}")
+            return f"⚠️ Error analyzing mental health: {str(e)}"
+

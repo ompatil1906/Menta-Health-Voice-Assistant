@@ -32,7 +32,7 @@ with col1:
 with col2:
     stop_btn = st.button("⏹️ Stop Speaking")
 with col3:
-    save_btn = st.button("💾 Save Conversation")
+    detect_btn = st.button("🧠 Detect Mental Health")  # New button
 
 # Handle UI interactions
 if listen_btn:
@@ -56,13 +56,10 @@ if stop_btn:
     st.session_state.assistant.stop_speech()
     st.rerun()  # Rerun to update the UI
 
-if save_btn:
-    st.session_state.assistant.save_conversation()
-    st.rerun()  # Rerun to update the UI
+if detect_btn:
+    st.session_state.analysis_result = st.session_state.assistant.detect_mental_health()
 
-# Handle listening status display
-if st.session_state.listening:
-    st.info("Listening... Speak now.")
-    # Add small delay to prevent constant rerun
-    time.sleep(0.1)
-    st.rerun()  # Rerun to update the UI
+if "analysis_result" in st.session_state and st.session_state.analysis_result:
+    with st.expander("📊 Mental Health Analysis Report", expanded=True):
+        st.markdown(st.session_state.analysis_result)
+
