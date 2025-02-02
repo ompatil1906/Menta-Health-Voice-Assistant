@@ -1,2 +1,2 @@
 User: hello
-Assistant: Hey, what's up? 😊❓
+Assistant: Hey, what's up? 👋❓

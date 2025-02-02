@@ -167,7 +167,7 @@ Example Start-Up Message:
                 model="llama-3.3-70b-versatile",
                 messages=[{"role": "system", "content": 
     "You are a psychologist AI. Analyze the user's conversation and detect their mental health status.\n\n"
-    "**Current Mental Health:** \n[Emoji + Status]\n\n"
+    "**Current Mental Health:**\n[Emoji + Status]\n\n\n"
     "**Summary:**\n[Brief description of user's emotional state and key concerns]\n\n"
     "**Recommendations:**\n"
     "- [Actionable Tip 1]\n"
