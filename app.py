@@ -1,8 +1,7 @@
 import streamlit as st
 import time
-from main import MentalHealthAssistant  # Ensure MentalHealthAssistant is imported
+from main import MentalHealthAssistant 
 
-# ✅ Set page configuration FIRST
 st.set_page_config(
     page_title="Mental Health Voice Assistant",
     page_icon="🧠",
@@ -10,7 +9,6 @@ st.set_page_config(
     initial_sidebar_state="collapsed",
 )
 
-# ✅ Initialize session state properly
 if "assistant" not in st.session_state:
     st.session_state.assistant = MentalHealthAssistant()
 if "listening" not in st.session_state:
@@ -18,7 +16,6 @@ if "listening" not in st.session_state:
 if "analysis_result" not in st.session_state:
     st.session_state.analysis_result = ""
 
-# ✅ Custom CSS for Dark Mode and Modern Look
 st.markdown("""
     <style>
         body {background-color: #000000; color: white;}  /* Overall page background set to black */

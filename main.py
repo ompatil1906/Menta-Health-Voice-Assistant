@@ -5,26 +5,17 @@ import pyttsx3
 import threading
 from openai import OpenAI
 from dotenv import load_dotenv
-import re
+import re  # Import regex for text cleaning
 
 load_dotenv()
 
 class MentalHealthAssistant:
     def __init__(self):
-        """Initialize the mental health assistant with OpenAI client and speech engine."""
         self.groq_client = OpenAI(
             api_key=os.getenv("GROQ_API_KEY"),
             base_url="https://api.groq.com/openai/v1",
         )
-        self.messages = [{"role": "system", "content": self.get_system_prompt()}]
-        self.speech_engine = None 
-        self.speech_thread = None
-        self.current_response = ""
-        self._stop_speaking = False
-
-    def get_system_prompt(self):
-        """Returns the system prompt for chatbot behavior."""
-        return ( '''You are "BuddyBot" - a friendly mental health companion that keeps conversations flowing with ultra-short responses. Always:
+        self.messages = [{"role": "system", "content": '''You are "BuddyBot" - a friendly mental health companion that keeps conversations flowing with ultra-short responses. Always:
 1. Respond in 1-2 sentences max
 2. Use casual language (ok→"ok", college→"clg")
 3. End with a ❓ unless user shares a problem
@@ -51,53 +42,89 @@ Bot: "🚨 Please call 1-800-273-8255 now. I'm here too."
 Example Start-Up Message:
 
 "Hello! I’m Mental Health Assistant. I’m here to listen and support you. How was your day?"
-''')
+'''}]
 
+        self.speech_engine = None 
+        self.speech_thread = None
+        self.current_response = ""
+        self._stop_speaking = False
+   
     def process_user_input(self, user_input):
-        """Processes user input, generates AI response, and speaks it."""
         self.messages.append({"role": "user", "content": user_input})
+        
         response = self.groq_client.chat.completions.create(
             model="llama-3.3-70b-versatile",
             messages=self.messages,
             temperature=0.5,
             max_tokens=1024,
         )
+        
         ai_response = response.choices[0].message.content
         self.messages.append({"role": "assistant", "content": ai_response})
+        self.current_response = ai_response
+        
+        # Automatically speak the response
         self.speak(ai_response)
+        
         return ai_response
 
     def recognize_speech(self):
-        """Recognizes speech input from the user."""
         recognizer = sr.Recognizer()
         with sr.Microphone() as source:
             recognizer.adjust_for_ambient_noise(source)
             try:
                 audio = recognizer.listen(source, timeout=20)
-                return recognizer.recognize_google(audio, language="en-US")
+                text = recognizer.recognize_google(audio, language="en-US")
+                return text
             except (sr.UnknownValueError, sr.RequestError, sr.WaitTimeoutError):
                 return None
 
+    def _speak(self, text):
+        """Handle text-to-speech with engine reinitialization"""
+        self._stop_speaking = False
+        self.speech_engine = pyttsx3.init()
+        self.speech_engine.setProperty("rate", 150)
+        
+        # Clean the text to remove emojis and symbols
+        clean_text = self.clean_text(text)
+
+        # Add event callbacks for proper cleanup
+        def on_start(name):
+            if self._stop_speaking:
+                self.speech_engine.stop()
+
+        def on_word(name, location, length):
+            if self._stop_speaking:
+                self.speech_engine.stop()
+
+        self.speech_engine.connect('started-utterance', on_start)
+        self.speech_engine.connect('started-word', on_word)
+        
+        self.speech_engine.say(clean_text)
+        self.speech_engine.runAndWait()
+        self.speech_engine = None  # Clean up engine after use
+
+    def clean_text(self, text):
+        """Remove emojis and non-alphanumeric characters from the text"""
+        # Regex to remove emojis and special characters
+        return re.sub(r'[^\w\s,.!?]', '', text)
+
     def speak(self, text):
-        """Starts a speech thread to read out the AI response."""
+        """Start speaking response directly"""
         if self.is_speaking():
             return False
+        
         self._stop_speaking = False
-        self.speech_thread = threading.Thread(target=self._speak, args=(text,), daemon=True)
+        self.speech_thread = threading.Thread(
+            target=self._speak, 
+            args=(text,),
+            daemon=True
+        )
         self.speech_thread.start()
         return True
 
-    def _speak(self, text):
-        """Handles text-to-speech conversion with stop detection."""
-        self.speech_engine = pyttsx3.init()
-        self.speech_engine.setProperty("rate", 150)
-        clean_text = re.sub(r'[^\w\s,.!?]', '', text)  # Remove special characters
-        self.speech_engine.say(clean_text)
-        self.speech_engine.runAndWait()
-        self.speech_engine = None
-
     def stop_speech(self):
-        """Stops ongoing speech."""
+        """Stop current speech"""
         self._stop_speaking = True
         if self.speech_engine:
             self.speech_engine.stop()
@@ -105,27 +132,42 @@ Example Start-Up Message:
             self.speech_thread.join(timeout=1)
 
     def is_speaking(self):
-        """Checks if speech is active."""
+        """Check if currently speaking"""
         return self.speech_thread and self.speech_thread.is_alive()
 
     def save_conversation(self, filename="conversation.txt"):
-        """Saves conversation history to a file."""
-        with open(filename, "w", encoding="utf-8") as file:
+        """Save the full conversation to a text file"""
+        with open(filename, "w",encoding="utf-8") as file:
             for message in self.messages[1:]:
-                file.write(f"{message['role'].capitalize()}: {message['content']}\n")
+                role = message["role"]
+                content = message["content"]
+                file.write(f"{role.capitalize()}: {content}\n")
         st.success(f"Conversation saved to {filename}")
 
     def detect_mental_health(self):
-        """Analyzes conversation history for mental health status."""
-        conversation_text = "\n".join(f"{m['role'].capitalize()}: {m['content']}" for m in self.messages[1:])
+        """Analyzes conversation using LLM and detects mental health status."""
+        filename = "conversation.txt"
+        
+        # Save conversation first
+        with open(filename, "w", encoding="utf-8") as file:
+            for message in self.messages[1:]:  # Skip system prompt
+                role = message["role"]
+                content = message["content"]
+                file.write(f"{role.capitalize()}: {content}\n")
+
+        # Read the conversation for analysis
+        with open(filename, "r", encoding="utf-8") as file:
+            conversation_text = file.read()
+
         if not conversation_text.strip():
             return "No conversation data available for analysis."
         try:
+            # Send conversation to LLM for mental health analysis
             response = self.groq_client.chat.completions.create(
                 model="llama-3.3-70b-versatile",
-                messages=[
-                    {"role": "system", "content": "You are a psychologist AI. Analyze the user's conversation and detect their mental health status.\n\n"
-    "*Current Mental Health:*\n[Emoji + Status]\n\n\n"
+                messages=[{"role": "system", "content": 
+    "You are a psychologist AI. Analyze the user's conversation and detect their mental health status.\n\n"
+    "**Current Mental Health:**\n[Emoji + Status]\n\n\n"
     "**Summary:**\n[Brief description of user's emotional state and key concerns]\n\n"
     "**Recommendations:**\n"
     "- [Actionable Tip 1]\n"
@@ -134,13 +176,25 @@ Example Start-Up Message:
     "Make sure each section appears on a new line for clarity.\n"
     "Use an appropriate emoji to represent the user's mental state (e.g., 😊 Happy, 😟 Stressed, 😔 Sad, 😢 Depressed, 😌 Relaxed, 😵‍💫 Overwhelmed, etc.)."
     "Make sure your analysis is concise, clear, and supportive."
-    "Base your assessment on the conversation context."},
+    "Base your assessment on the conversation context."
+                    },
                     {"role": "user", "content": conversation_text},
                 ],
                 temperature=0.7,
                 max_tokens=300,
             )
-            return response.choices[0].message.content.strip()
+
+            analysis_result = response.choices[0].message.content.strip()
+
+            return analysis_result
+
         except Exception as e:
+            print(f"❌ Error in mental health analysis: {str(e)}")
             return f"⚠️ Error analyzing mental health: {str(e)}"
+
+
+
+
+
+
 
