@@ -165,7 +165,7 @@ Example Start-Up Message:
             # Send conversation to LLM for mental health analysis
             response = self.groq_client.chat.completions.create(
                 model="llama-3.3-70b-versatile",
-                messages=[{"role": "system", "content": 
+                messages=[{"role": "system", "content": '''
     "You are a psychologist AI. Analyze the user's conversation and detect their mental health status.\n\n"
     "**Current Mental Health:**\n[Emoji + Status]\n\n\n"
     "**Summary:**\n[Brief description of user's emotional state and key concerns]\n\n"
@@ -177,7 +177,7 @@ Example Start-Up Message:
     "Use an appropriate emoji to represent the user's mental state (e.g., 😊 Happy, 😟 Stressed, 😔 Sad, 😢 Depressed, 😌 Relaxed, 😵‍💫 Overwhelmed, etc.)."
     "Make sure your analysis is concise, clear, and supportive."
     "Base your assessment on the conversation context."
-                    },
+                   ''' },
                     {"role": "user", "content": conversation_text},
                 ],
                 temperature=0.7,
