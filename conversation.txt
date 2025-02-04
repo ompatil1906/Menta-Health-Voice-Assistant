@@ -1,2 +1,4 @@
 User: hello
 Assistant: Hey, what's up? 👋
+User: I am fine I am bored at
+Assistant: What's on your mind, need something to do? 🤔
