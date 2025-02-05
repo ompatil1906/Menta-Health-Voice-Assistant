@@ -15,6 +15,8 @@ if "listening" not in st.session_state:
     st.session_state.listening = False
 if "analysis_result" not in st.session_state:
     st.session_state.analysis_result = ""
+if "show_history" not in st.session_state:
+        st.session_state.show_history = False
 
 st.markdown("""
     <style>
@@ -69,6 +71,15 @@ st.markdown("""
 st.title("🎤 **Voice-Enabled Mental Health Assistant**")
 st.markdown("**Talk to your AI Assistant for a healthier mind**")
 
+if st.session_state.show_history:
+        st.subheader("📜 Chat History")
+        chat_history = st.session_state.assistant.get_chat_history()
+        for entry in chat_history:
+            with st.chat_message("user"):
+                st.markdown(entry['user_input'])
+            with st.chat_message("assistant"):
+                st.markdown(entry['ai_response'])
+
 # Display Chat History with Avatars
 for message in st.session_state.assistant.messages:
     if message["role"] == "system":
@@ -83,7 +94,8 @@ with st.sidebar:
     st.markdown("🧠 *Detects mental wellness and emotional state*")
     st.markdown("🔊 *Speaks responses aloud, fostering interaction*")
     st.markdown("💬 *Easy to use: Chat with AI for mental health support*")
-
+    if st.button("📜 Show Chat History" if not st.session_state.show_history else "❌ Hide History"):
+        st.session_state.show_history = not st.session_state.show_history
 # Control Buttons (Centered Layout)
 col1, col2, col3 = st.columns([2, 2, 2])
 
@@ -96,6 +108,7 @@ with col2:
     stop_btn = st.button("⏹️ Stop Speaking", key="stop")
 with col3:
     detect_btn = st.button("🧠 Detect Mental Health", key="detect")
+
 
 # Handle Button Actions
 if listen_btn:

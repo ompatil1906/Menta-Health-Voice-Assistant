@@ -6,11 +6,19 @@ import threading
 from openai import OpenAI
 from dotenv import load_dotenv
 import re  # Import regex for text cleaning
+from pymongo import MongoClient
+import uuid
+import datetime
 
 load_dotenv()
 
 class MentalHealthAssistant:
     def __init__(self):
+
+        self.client = MongoClient(os.getenv("MONGO_URI"))  # MongoDB setup
+        self.db = self.client["mental_health_db"]
+        self.chat_history_collection = self.db["chat_history"]
+    
         self.groq_client = OpenAI(
             api_key=os.getenv("GROQ_API_KEY"),
             base_url="https://api.groq.com/openai/v1",
@@ -48,10 +56,22 @@ Example Start-Up Message:
         self.speech_thread = None
         self.current_response = ""
         self._stop_speaking = False
+
+    def store_chat_history(self, user_input, ai_response, user_id):
+            """Store user conversation in MongoDB"""
+            chat_entry = {
+                "user_input": user_input,
+                "ai_response": ai_response,
+                "timestamp": datetime.datetime.now(),
+                "user_id": user_id
+            }
+            self.chat_history_collection.insert_one(chat_entry)
    
     def process_user_input(self, user_input):
         self.messages.append({"role": "user", "content": user_input})
-        
+        if "user_id" not in st.session_state:
+            st.session_state.user_id = str(uuid.uuid4())  # Assign a unique user ID
+        user_id = st.session_state.user_id
         response = self.groq_client.chat.completions.create(
             model="llama-3.3-70b-versatile",
             messages=self.messages,
@@ -62,7 +82,7 @@ Example Start-Up Message:
         ai_response = response.choices[0].message.content
         self.messages.append({"role": "assistant", "content": ai_response})
         self.current_response = ai_response
-        
+        self.store_chat_history(user_input, ai_response, user_id)
         # Automatically speak the response
         self.speak(ai_response)
         
@@ -78,7 +98,10 @@ Example Start-Up Message:
                 return text
             except (sr.UnknownValueError, sr.RequestError, sr.WaitTimeoutError):
                 return None
-
+    def get_chat_history(self):
+        """Retrieve past conversations from MongoDB"""
+        history = self.chat_history_collection.find().sort("timestamp", -1)
+        return [{"user_input": entry["user_input"], "ai_response": entry["ai_response"]} for entry in history]
     def _speak(self, text):
         """Handle text-to-speech with engine reinitialization"""
         self._stop_speaking = False
@@ -87,6 +110,13 @@ Example Start-Up Message:
         
         # Clean the text to remove emojis and symbols
         clean_text = self.clean_text(text)
+
+        #Get Female Voice
+        voices = self.speech_engine.getProperty('voices')
+        for voice in voices:
+            if "zira" in voice.name.lower():
+                self.speech_engine.setProperty('voice', voice.id)
+                break
 
         # Add event callbacks for proper cleanup
         def on_start(name):
