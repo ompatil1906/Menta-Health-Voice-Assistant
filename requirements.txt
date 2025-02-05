@@ -6,3 +6,4 @@ python-dotenv
 pyaudio
 openai
 pymongo
+reportlab

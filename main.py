@@ -6,9 +6,15 @@ import threading
 from openai import OpenAI
 from dotenv import load_dotenv
 import re  # Import regex for text cleaning
+
+from report_generator import generate_report
+
 from pymongo import MongoClient
 import uuid
 import datetime
+from bson import ObjectId
+
+
 
 load_dotenv()
 
@@ -164,67 +170,24 @@ Example Start-Up Message:
     def is_speaking(self):
         """Check if currently speaking"""
         return self.speech_thread and self.speech_thread.is_alive()
-
-    def save_conversation(self, filename="conversation.txt"):
-        """Save the full conversation to a text file"""
-        with open(filename, "w",encoding="utf-8") as file:
-            for message in self.messages[1:]:
-                role = message["role"]
-                content = message["content"]
-                file.write(f"{role.capitalize()}: {content}\n")
-        st.success(f"Conversation saved to {filename}")
-
-    def detect_mental_health(self):
-        """Analyzes conversation using LLM and detects mental health status."""
-        filename = "conversation.txt"
-        
-        # Save conversation first
-        with open(filename, "w", encoding="utf-8") as file:
-            for message in self.messages[1:]:  # Skip system prompt
-                role = message["role"]
-                content = message["content"]
-                file.write(f"{role.capitalize()}: {content}\n")
-
-        # Read the conversation for analysis
-        with open(filename, "r", encoding="utf-8") as file:
-            conversation_text = file.read()
-
-        if not conversation_text.strip():
-            return "No conversation data available for analysis."
+    def generate_report_for_user(self, user_id):
+        """Generate a mental health report based on the user's chat history"""
         try:
-            # Send conversation to LLM for mental health analysis
-            response = self.groq_client.chat.completions.create(
-                model="llama-3.3-70b-versatile",
-                messages=[{"role": "system", "content": '''
-    "You are a psychologist AI. Analyze the user's conversation and detect their mental health status.\n\n"
-    "**Current Mental Health:**\n[Emoji + Status]\n\n\n"
-    "**Summary:**\n[Brief description of user's emotional state and key concerns]\n\n"
-    "**Recommendations:**\n"
-    "- [Actionable Tip 1]\n"
-    "- [Actionable Tip 2]\n"
-    "- [Actionable Tip 3]\n\n"
-    "Make sure each section appears on a new line for clarity.\n"
-    "Use an appropriate emoji to represent the user's mental state (e.g., 😊 Happy, 😟 Stressed, 😔 Sad, 😢 Depressed, 😌 Relaxed, 😵‍💫 Overwhelmed, etc.)."
-    "Make sure your analysis is concise, clear, and supportive."
-    "Base your assessment on the conversation context."
-                   ''' },
-                    {"role": "user", "content": conversation_text},
-                ],
-                temperature=0.7,
-                max_tokens=300,
-            )
+            user_id = ObjectId(user_id)
+        except:
+            pass
 
-            analysis_result = response.choices[0].message.content.strip()
+        user_conversations = list(self.chat_history_collection.find({"user_id": user_id}).sort("timestamp", -1))
 
-            return analysis_result
+        if not user_conversations:
+            return "No chat history found for this user."
 
-        except Exception as e:
-            print(f"❌ Error in mental health analysis: {str(e)}")
-            return f"⚠️ Error analyzing mental health: {str(e)}"
+        conversation_text = "\n".join([
+            f"User: {entry.get('user_input', 'N/A')}\nAI: {entry.get('ai_response', 'N/A')}"
+            for entry in user_conversations
+        ])
 
+        report = generate_report(conversation_text)
+        return report
 
-
-
-
-
-
+    
