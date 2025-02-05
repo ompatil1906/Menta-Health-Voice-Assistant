@@ -157,10 +157,7 @@ if st.session_state.show_report:
     with st.expander("📊 **Mental Health Report**", expanded=True):
         st.markdown(f'<div class="report-box">{st.session_state.analysis_result}</div>', unsafe_allow_html=True)
 
-    # Display Report
-if st.session_state.show_report and "report" in st.session_state:
-    st.subheader("📄 Mental Health Report:")
-    st.markdown(st.session_state.report)
+
 
     # Generate PDF Report
     def generate_pdf(report_text):
