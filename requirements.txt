@@ -7,4 +7,3 @@ pyaudio
 openai
 pymongo
 reportlab
-plotly
