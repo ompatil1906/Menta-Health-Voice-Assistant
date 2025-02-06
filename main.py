@@ -29,7 +29,7 @@ class MentalHealthAssistant:
             api_key=os.getenv("GROQ_API_KEY"),
             base_url="https://api.groq.com/openai/v1",
         )
-        self.messages = [{"role": "system", "content": '''You are "BuddyBot" - a friendly mental health companion that keeps conversations flowing with ultra-short responses. Always:
+        self.messages = [{"role": "system", "content": ''' You are "BuddyBot" - a friendly mental health companion that keeps conversations flowing with ultra-short responses. Always:
 1. Respond in 1-2 sentences max
 2. Use casual language (ok→"ok", college→"clg")
 3. End with a ❓ unless user shares a problem
@@ -63,16 +63,20 @@ Example Start-Up Message:
         self.current_response = ""
         self._stop_speaking = False
 
-    def store_chat_history(self, user_input, ai_response, user_id):
-            """Store user conversation in MongoDB"""
-            chat_entry = {
-                "user_input": user_input,
-                "ai_response": ai_response,
-                "timestamp": datetime.datetime.now(),
-                "user_id": user_id
-            }
-            self.chat_history_collection.insert_one(chat_entry)
-   
+    
+
+
+    def recognize_speech(self):
+        recognizer = sr.Recognizer()
+        with sr.Microphone() as source:
+            recognizer.adjust_for_ambient_noise(source)
+            try:
+                audio = recognizer.listen(source, timeout=20)
+                text = recognizer.recognize_google(audio, language="en-US")
+                return text
+            except (sr.UnknownValueError, sr.RequestError, sr.WaitTimeoutError):
+                return None
+            
     def process_user_input(self, user_input):
         self.messages.append({"role": "user", "content": user_input})
         if "user_id" not in st.session_state:
@@ -94,20 +98,7 @@ Example Start-Up Message:
         
         return ai_response
 
-    def recognize_speech(self):
-        recognizer = sr.Recognizer()
-        with sr.Microphone() as source:
-            recognizer.adjust_for_ambient_noise(source)
-            try:
-                audio = recognizer.listen(source, timeout=20)
-                text = recognizer.recognize_google(audio, language="en-US")
-                return text
-            except (sr.UnknownValueError, sr.RequestError, sr.WaitTimeoutError):
-                return None
-    def get_chat_history(self):
-        """Retrieve past conversations from MongoDB"""
-        history = self.chat_history_collection.find().sort("timestamp", -1)
-        return [{"user_input": entry["user_input"], "ai_response": entry["ai_response"]} for entry in history]
+
     def _speak(self, text):
         """Handle text-to-speech with engine reinitialization"""
         self._stop_speaking = False
@@ -170,6 +161,22 @@ Example Start-Up Message:
     def is_speaking(self):
         """Check if currently speaking"""
         return self.speech_thread and self.speech_thread.is_alive()
+    
+    def get_chat_history(self):
+        """Retrieve past conversations from MongoDB"""
+        history = self.chat_history_collection.find().sort("timestamp", -1)
+        return [{"user_input": entry["user_input"], "ai_response": entry["ai_response"]} for entry in history]
+    
+    def store_chat_history(self, user_input, ai_response, user_id):
+            """Store user conversation in MongoDB"""
+            chat_entry = {
+                "user_input": user_input,
+                "ai_response": ai_response,
+                "timestamp": datetime.datetime.now(),
+                "user_id": user_id
+            }
+            self.chat_history_collection.insert_one(chat_entry)
+
     def generate_report_for_user(self, user_id):
         """Generate a mental health report based on the user's chat history"""
         try:
@@ -180,7 +187,7 @@ Example Start-Up Message:
         user_conversations = list(self.chat_history_collection.find({"user_id": user_id}).sort("timestamp", -1))
 
         if not user_conversations:
-            return "No chat history found for this user."
+            return "No chat history found for this user !"
 
         conversation_text = "\n".join([
             f"User: {entry.get('user_input', 'N/A')}\nAI: {entry.get('ai_response', 'N/A')}"
