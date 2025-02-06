@@ -1,179 +1,134 @@
 import streamlit as st
-import time
-from main import MentalHealthAssistant 
-import uuid
-from reportlab.lib.pagesizes import letter
-from reportlab.pdfgen import canvas
-from reportlab.lib import colors
-from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
-from reportlab.platypus import SimpleDocTemplate, Paragraph
-from io import BytesIO
+import plotly.graph_objects as go
+from datetime import datetime, timedelta
 
+# Custom theme and styling
+st.set_page_config(layout="wide", page_title="Mental Health Dashboard")
 
-
-
-st.set_page_config(
-    page_title="Mental Health Voice Assistant",
-    page_icon="🧠",
-    layout="wide",
-    initial_sidebar_state="collapsed",
-)
-
-if "assistant" not in st.session_state:
-    st.session_state.assistant = MentalHealthAssistant()
-if "listening" not in st.session_state:
-    st.session_state.listening = False
-if "analysis_result" not in st.session_state:
-    st.session_state.analysis_result = ""
-if "show_history" not in st.session_state:
-        st.session_state.show_history = False
-if "show_report" not in st.session_state:
-        st.session_state.show_report = False
-if "last_processed_input" not in st.session_state:
-        st.session_state.last_processed_input = ""
-
+# Modern blue & white theme
 st.markdown("""
     <style>
-        body {background-color: #000000; color: white;}  /* Overall page background set to black */
+        /* Main theme colors */
+        :root {
+            --primary-blue: #1E88E5;
+            --light-blue: #90CAF9;
+            --white: #FFFFFF;
+            --light-gray: #F5F5F5;
+        }
         
+        /* Background and text colors */
+        .stApp {
+            background-color: var(--white);
+            color: #2C3E50;
+        }
+        
+        /* Buttons styling */
         .stButton > button {
-            border-radius: 12px; 
-            font-size: 18px; 
-            padding: 15px; 
-            width: 100%; 
-            transition: 0.4s; 
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
-        }
-        
-        .stButton > button:hover {
-            background-color: #708090;  
+            background-color: var(--primary-blue);
             color: white;
+            border-radius: 8px;
+            padding: 0.5rem 1rem;
+            border: none;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
         }
         
-        .stChatMessage {
-            border-radius: 12px; 
-            padding: 12px; 
-            margin-bottom: 12px;
+        /* Cards/containers styling */
+        .css-1r6slb0 {
+            background-color: var(--white);
+            border-radius: 10px;
+            padding: 1rem;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
         }
         
-        .stChatMessage-user {
-            background-color: #333333; 
-            color: white;
-        }
-        
-        .stChatMessage-assistant {
-            background-color: #2d2d2d; 
-            color: #1DB954;
-        }
-        
-        .report-box {
-            background-color: #333333;  /* Report box background set to white */
-            color: white;  /* Text color for the report box */
-            padding: 15px; 
-            border-radius: 12px,;
-            width: 100%;
-            border: 1px solid #444444;
-        }
-
-        .stSlider {
-            background-color: #121212;
+        /* Metrics styling */
+        .metric-card {
+            background-color: var(--light-blue);
+            padding: 1rem;
+            border-radius: 8px;
+            text-align: center;
         }
     </style>
 """, unsafe_allow_html=True)
 
-st.title("🎤 **Mental Health Assistant**")
-st.markdown("💬 *Talk to your AI companion for emotional support*")
+# Dashboard layout
+def create_dashboard():
+    # Header
+    col1, col2 = st.columns([2,1])
+    with col1:
+        st.title("🧠 Mental Health Analytics Dashboard")
+    with col2:
+        st.button("Start New Session")
 
-if st.session_state.show_history:
-        st.subheader("📜 Chat History")
-        chat_history = st.session_state.assistant.get_chat_history()
-        for entry in chat_history:
-            with st.chat_message("user"):
-                st.markdown(entry['user_input'])
-            with st.chat_message("assistant"):
-                st.markdown(entry['ai_response'])
+    # Key Metrics
+    m1, m2, m3, m4 = st.columns(4)
+    with m1:
+        with st.container():
+            st.markdown("<div class='metric-card'>", unsafe_allow_html=True)
+            st.metric("Total Sessions", "28", "+3")
+            st.markdown("</div>", unsafe_allow_html=True)
+    with m2:
+        with st.container():
+            st.markdown("<div class='metric-card'>", unsafe_allow_html=True)
+            st.metric("Mood Score", "7.5", "+0.5")
+            st.markdown("</div>", unsafe_allow_html=True)
+    with m3:
+        with st.container():
+            st.markdown("<div class='metric-card'>", unsafe_allow_html=True)
+            st.metric("Response Time", "1.2s", "-0.3s")
+            st.markdown("</div>", unsafe_allow_html=True)
+    with m4:
+        with st.container():
+            st.markdown("<div class='metric-card'>", unsafe_allow_html=True)
+            st.metric("Active Users", "12", "+2")
+            st.markdown("</div>", unsafe_allow_html=True)
 
-# Display Chat History with Avatars
-for message in st.session_state.assistant.messages:
-    if message["role"] == "system":
-        continue  # Skip system messages
-    with st.chat_message(message["role"], avatar="👤" if message["role"] == "user" else "🤖"):
-        st.markdown(message["content"])
+    # Main content
+    col1, col2 = st.columns([2,1])
+    
+    with col1:
+        st.subheader("Recent Conversations")
+        chat_container = st.container()
+        with chat_container:
+            for message in st.session_state.assistant.messages:
+                if message["role"] != "system":
+                    with st.chat_message(message["role"], avatar="👤" if message["role"] == "user" else "🤖"):
+                        st.markdown(message["content"])
 
-# Sidebar for additional info and support
-with st.sidebar:
-    st.subheader("ℹ️ About Bot")
-    st.markdown("🎤 *Voice activated mental health companion*")
-    st.markdown("🧠 *Detects mental wellness and emotional state*")
-    st.markdown("🔊 *Speaks responses aloud, fostering interaction*")
-    st.markdown("💬 *Easy to use: Chat with AI for mental health support*")
-    if st.button("📜 Show Chat History" if not st.session_state.show_history else "❌ Hide History"):
-        st.session_state.show_history = not st.session_state.show_history
+    with col2:
+        st.subheader("Quick Actions")
+        st.button("🎙️ Start Voice Chat")
+        st.button("📊 Generate Report")
+        st.button("📥 Export Data")
+        
+        # Mood Tracker
+        st.subheader("Daily Mood Tracker")
+        mood = st.slider("How are you feeling today?", 1, 10, 5)
+        if st.button("Save Mood"):
+            st.success("Mood recorded!")
 
-col1, col2, col3 = st.columns(3)
-with col1:
-    listen_btn = st.button(
-        "🎙️ Start Listening" if not st.session_state.listening else "🔴 Stop Listening"
-    )
-with col2:
-    stop_btn = st.button("⏹️ Stop Speaking")
-with col3:
-    detect_btn = st.button("🧠 Generate Report")
+    # Bottom section
+    st.subheader("Analytics")
+    tab1, tab2 = st.tabs(["Mood Trends", "Usage Statistics"])
+    
+    with tab1:
+        # Sample mood trend chart using Plotly
+        dates = [datetime.now() - timedelta(days=x) for x in range(7)]
+        mood_scores = [7, 6, 8, 7, 9, 8, 7]
+        
+        fig = go.Figure()
+        fig.add_trace(go.Scatter(x=dates, y=mood_scores, mode='lines+markers',
+                                line=dict(color='#1E88E5', width=2),
+                                marker=dict(size=8, color='#90CAF9')))
+        fig.update_layout(
+            title="Weekly Mood Trends",
+            xaxis_title="Date",
+            yaxis_title="Mood Score",
+            paper_bgcolor='rgba(0,0,0,0)',
+            plot_bgcolor='rgba(0,0,0,0)',
+            height=400
+        )
+        st.plotly_chart(fig, use_container_width=True)
 
-if listen_btn:
-    st.session_state.listening = not st.session_state.listening
-    if st.session_state.listening:
-        st.info("🎤 Listening... Speak now!")
-        user_input = st.session_state.assistant.recognize_speech()
-        if user_input:
-            st.session_state.listening = False
-            with st.chat_message("user", avatar="👤"):
-                st.markdown(user_input)
-            with st.chat_message("assistant", avatar="🤖"):
-                with st.spinner("Typing..."):
-                    ai_response = st.session_state.assistant.process_user_input(user_input)
-                    time.sleep(1)
-                    st.markdown(ai_response)
-            st.rerun()
-
-if stop_btn:
-    st.session_state.assistant.stop_speech()
-    st.success("🔇 Speech stopped.")
-    st.rerun()
-
-if detect_btn:
-    if "user_id" not in st.session_state:
-        st.session_state.user_id = str(uuid.uuid4())
-    user_id = st.session_state.user_id
-    report = st.session_state.assistant.generate_report_for_user(user_id)
-    if report:
-        st.session_state.show_report = True
-        st.session_state.analysis_result = report
-    else:
-        st.warning("No conversation history detected.")
-    st.rerun()
-
-if st.session_state.show_report:
-    with st.expander("📊 **Mental Health Report**", expanded=True):
-        st.markdown(f'<div class="report-box">{st.session_state.analysis_result}</div>', unsafe_allow_html=True)
-
-
-
-    # Generate PDF Report
-    def generate_pdf(report_text):
-            buffer = BytesIO()
-            doc = SimpleDocTemplate(buffer, pagesize=letter)
-            story = []
-            styles = getSampleStyleSheet()
-            normal_style = ParagraphStyle("Normal", parent=styles['Normal'], fontName="Helvetica", fontSize=12, leading=14, spaceAfter=12, spaceBefore=6)
-            for line in report_text.split('\n'):
-                line = line.strip()
-                paragraph = Paragraph(line, normal_style)
-                story.append(paragraph)
-
-            doc.build(story)
-            buffer.seek(0)
-            return buffer
-
-    pdf_buffer = generate_pdf(st.session_state.analysis_result)
-    st.download_button(label="📥 Download PDF", data=pdf_buffer, file_name="mental_health_report.pdf", mime="application/pdf")
+# Initialize dashboard
+if __name__ == "__main__":
+    create_dashboard()

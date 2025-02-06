@@ -6,9 +6,7 @@ import threading
 from openai import OpenAI
 from dotenv import load_dotenv
 import re  # Import regex for text cleaning
-
 from report_generator import generate_report
-
 from pymongo import MongoClient
 import uuid
 import datetime
@@ -59,13 +57,10 @@ Example Start-Up Message:
 '''}]
 
         # self.speech_engine = None
-        self.speech_engine = pyttsx3.init() 
+        self.speech_engine =pyttsx3.init() 
         self.speech_thread = None
         self.current_response = ""
         self._stop_speaking = False
-
-    
-
 
     def recognize_speech(self):
         recognizer = sr.Recognizer()
