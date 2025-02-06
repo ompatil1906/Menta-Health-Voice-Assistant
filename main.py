@@ -19,7 +19,7 @@ load_dotenv()
 class MentalHealthAssistant:
     def __init__(self):
 
-        self.client = MongoClient(st.secrets["MONGO_URI"])  # MongoDB setup
+        self.client = MongoClient(st.secrets["MONGO_URI"]) 
         self.db = self.client["mental_health_db"]
         self.chat_history_collection = self.db["chat_history"]
     
@@ -56,8 +56,7 @@ Example Start-Up Message:
 "Hello! I’m Mental Health Assistant. I’m here to listen and support you. How was your day?"
 '''}]
 
-        # self.speech_engine = None
-        self.speech_engine =pyttsx3.init() 
+        self.speech_engine = None
         self.speech_thread = None
         self.current_response = ""
         self._stop_speaking = False
@@ -98,7 +97,7 @@ Example Start-Up Message:
     def _speak(self, text):
         """Handle text-to-speech with engine reinitialization"""
         self._stop_speaking = False
-        # self.speech_engine = pyttsx3.init()
+        self.speech_engine = pyttsx3.init()
         self.speech_engine.setProperty("rate", 150)
         
         # Clean the text to remove emojis and symbols
