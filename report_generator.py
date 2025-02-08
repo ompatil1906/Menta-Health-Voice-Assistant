@@ -43,10 +43,9 @@ def generate_report(conversation_text):
     """
 
     # Define the AI prompt
-    prompt = f'''
-    "You are a psychologist AI. Analyze the user's conversation and detect their mental health status.\n\n"
+    prompt = f''' "You are a psychologist AI. Analyze the user's conversation and detect their mental health status.\n\n"
     "conversation_text: "{conversation_text}
-    "**Current Mental Health:** [Emoji + Status]\n\n\n"
+    " **Current Mental Health:** [Emoji + Status]\n\n\n"
     "**Summary:**\n[Brief description of user's emotional state and key concerns]\n\n"
     "**Recommendations:**\n"
     "- [Actionable Tip 1]\n"
