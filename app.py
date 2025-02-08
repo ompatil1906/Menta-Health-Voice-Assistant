@@ -32,34 +32,57 @@ if "last_processed_input" not in st.session_state:
 if "show_info" not in st.session_state:
     st.session_state.show_info = False
 st.markdown("""
-    <style>
-        .chat-container {
-            display: flex;
-            margin-bottom: 10px;
-        }
-        .chat-container.user {
-            justify-content: flex-end;
-        }
-        .chat-container.assistant {
-            justify-content: flex-start;
-        }
-        .chat-bubble {
-            padding: 10px 15px;
-            border-radius: 15px;
-            max-width: 70%;
-            word-wrap: break-word;
-        }
-        .chat-bubble.user {
-            background-color: #DCF8C6;
-            text-align: right;
-        }
-        .chat-bubble.assistant {
-            background-color: #E3E3E3;
-            text-align: left;
-        }
-    </style>
-""", unsafe_allow_html=True)
+        <style>
+            body { background-color: #121212; color: white; margin-right:100px}
+        
+            .stTextInput > div > div > input {
+                background-color: rgb(220, 214, 238) !important;
+                color: black !important;
+                border: 2px solid transparent !important;  /* Removes the red border */
+                border-radius: 8px !important;
+                padding: 10px !important;
+                transition: border-color 0.3s ease-in-out !important;
+            }
 
+            .stTextInput > div > div > input:focus {
+                border: 2px solid rgb(173, 149, 213) !important; /* Adds a soft purple focus border */
+                outline: none !important;
+                text-color:black;
+            }
+
+            .stButton > button {
+                border-radius: 12px; 
+                font-size: 16px; 
+                padding: 12px; 
+                width: 100%; 
+                transition: 0.3s;
+                background-color: rgb(173, 149, 213); 
+                color: white;
+            }
+
+            .stButton > button:hover {
+                background-color: rgb(173, 149, 213);
+            }
+    
+            .stChatMessage {
+                border-radius: 12px; 
+                padding: 12px; 
+                margin-bottom: 12px;
+            }
+
+            .stChatMessage-user {
+                background-color: #333333; 
+                color: white;
+            }
+
+            .stChatMessage-assistant {
+                background-color: #2d2d2d; 
+                color:rgb(217, 205, 235);
+            }
+
+            .stMarkdown { font-size: 16px; }
+        </style>
+    """, unsafe_allow_html=True)
 # Left sidebar for chat history
 with st.sidebar:
     st.header("Chat History")
@@ -71,7 +94,7 @@ with st.sidebar:
             with st.chat_message("assistant"):
                 st.markdown(entry['ai_response'])
     else:
-        st.info("History is currently hidden. Enable it using the toggle in the main view.")
+        st.info("History is currently hidden. Please Click on **Show History** in the main view.")
 
 # Main content area
 st.title("🎤 Mental Health Assistant")
@@ -91,30 +114,21 @@ with col1:
                 📥 Export your session history as PDF  
             """)
 with col2:
-    st.button("ℹ️ Toggle Info", on_click=lambda: st.session_state.update(show_info=not st.session_state.show_info))
-    st.button("📜 Toggle History", on_click=lambda: st.session_state.update(show_history=not st.session_state.show_history))
+    st.button("ℹ️ About Bot", on_click=lambda: st.session_state.update(show_info=not st.session_state.show_info))
+    st.button("📜 Show History",on_click=lambda: st.session_state.update(show_history=not st.session_state.show_history))
 
 # Display chat messages
 for message in st.session_state.assistant.messages:
     if message["role"] == "system":
         continue
-
-    role_class = "user" if message["role"] == "user" else "assistant"
-    avatar = "👤" if message["role"] == "user" else "🤖"
-
-    st.markdown(f"""
-        <div class="chat-container {role_class}">
-            <div class="chat-bubble {role_class}">
-                <b>{avatar}</b> {message["content"]}
-            </div>
-        </div>
-    """, unsafe_allow_html=True)
+    with st.chat_message(message["role"]):
+        st.markdown(message["content"])
 
 # Chat input and processing
 if prompt := st.chat_input("Type your message or click microphone to speak..."):
-    with st.chat_message("user", avatar="👤"):
+    with st.chat_message("user"):
         st.markdown(prompt)
-    with st.chat_message("assistant", avatar="🤖"):
+    with st.chat_message("assistant"):
         with st.spinner("Analyzing..."):
             response = st.session_state.assistant.process_user_input(prompt)
             st.markdown(response)
@@ -126,11 +140,12 @@ with cols[0]:
     if st.button("🎙️ Start Listening" if not st.session_state.listening else "🔴 Stop Listening"):
         st.session_state.listening = not st.session_state.listening
         if st.session_state.listening:
+            st.info("Listening... Speak now.")
             user_input = st.session_state.assistant.recognize_speech()
             if user_input:
-                with st.chat_message("user", avatar="👤"):
+                with st.chat_message("user"):
                     st.markdown(user_input)
-                with st.chat_message("assistant", avatar="🤖"):
+                with st.chat_message("assistant"):
                     with st.spinner("Analyzing..."):
                         response = st.session_state.assistant.process_user_input(user_input, is_voice=True)
                         st.markdown(response)

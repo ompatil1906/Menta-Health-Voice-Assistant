@@ -38,7 +38,7 @@ class MentalHealthAssistant:
         return conversation_text
 
 def generate_report(conversation_text):
-    """
+    """5
     Generates a highly structured and supportive mental health report.
     """
 
