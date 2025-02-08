@@ -232,7 +232,7 @@ if page == "Home":
 
         
         pdf_buffer = generate_pdf(st.session_state.analysis_result)
-        st.download_button("📥 Download PDF", data=pdf_buffer,file_name="mental_health_report.pdf",mime="application/pdf")
+        st.download_button("📥 Download PDF", data=pdf_buffer,file_name="Mental_health_report.pdf",mime="application/pdf")
             
 elif page == "Journal":
     journaling_page()
