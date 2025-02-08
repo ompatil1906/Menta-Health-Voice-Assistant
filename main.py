@@ -7,7 +7,8 @@ from openai import OpenAI
 from dotenv import load_dotenv
 import re  # Import regex for text cleaning
 from report_generator import generate_report
-from pymongo import MongoClient
+from pymongo.mongo_client import MongoClient
+from pymongo.server_api import ServerApi
 import uuid
 import datetime
 from bson import ObjectId
@@ -20,7 +21,7 @@ load_dotenv()
 class MentalHealthAssistant:
     def __init__(self):
 
-        self.client = MongoClient(st.secrets["MONGO_URI"]) 
+        self.client = MongoClient(st.secrets["MONGO_URI"], server_api=ServerApi('1')) 
         self.db = self.client["mental_health_db"]
         self.chat_history_collection = self.db["chat_history"]
     
