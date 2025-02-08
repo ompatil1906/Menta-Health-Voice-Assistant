@@ -9,6 +9,7 @@ from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
 from reportlab.platypus import SimpleDocTemplate, Paragraph
 from io import BytesIO
 from journal import journaling_page
+import re
 
 st.set_page_config(
     page_title="Mental Health Voice Assistant",
@@ -178,27 +179,60 @@ if page == "Home":
             st.markdown(f'<div class="report-box">{st.session_state.analysis_result}</div>', unsafe_allow_html=True)
 
             # Generate PDF Report
-        def generate_pdf(report_text):
-            buffer = BytesIO()
-            doc = SimpleDocTemplate(buffer, pagesize=letter)
-            story = []
-            styles = getSampleStyleSheet()
-            normal_style = ParagraphStyle("Normal", parent=styles['Normal'], fontName="Helvetica", fontSize=12, leading=14, spaceAfter=12, spaceBefore=6)
-            bullet_style = ParagraphStyle("Bullet", parent=styles['Normal'], fontName="Helvetica", fontSize=12, leading=14, spaceAfter=12, spaceBefore=6, leftIndent=20, bulletIndent=10)
+            def generate_pdf(report_text):
+                buffer = BytesIO()
+                doc = SimpleDocTemplate(buffer, pagesize=letter)
+                story = []
+                styles = getSampleStyleSheet()
+                normal_style = ParagraphStyle(
+                    "Normal",
+                    parent=styles['Normal'],
+                    fontName="Helvetica",
+                    fontSize=12,
+                    leading=14,
+                    spaceAfter=12,
+                    spaceBefore=6
+                )
+                bullet_style = ParagraphStyle(
+                    "Bullet",
+                    parent=styles['Normal'],
+                    fontName="Helvetica",
+                    fontSize=12,
+                    leading=14,
+                    spaceAfter=12,
+                    spaceBefore=6,
+                    leftIndent=20,
+                    bulletIndent=10
+                )
 
-            for line in report_text.split('\n'):
-                line = line.strip()
-                paragraph = Paragraph(line, bullet_style if line.startswith("•") else normal_style)
-                story.append(paragraph)
+                # Compile a regex pattern for common emoji characters.
+                emoji_pattern = re.compile(
+                    "["                    
+                    u"\U0001F600-\U0001F64F"  # emoticons
+                    u"\U0001F300-\U0001F5FF"  # symbols & pictographs
+                    u"\U0001F680-\U0001F6FF"  # transport & map symbols
+                    u"\U0001F1E0-\U0001F1FF"  # flags (iOS)
+                    "]+", 
+                    flags=re.UNICODE
+                )
 
-            doc.build(story)
-            buffer.seek(0)
-            return buffer
+                for line in report_text.split('\n'):
+                    # Remove markdown bold markers "**"
+                    line = line.replace("**", "")
+                    # Remove emojis using the compiled pattern.
+                    line = emoji_pattern.sub(r'', line)
+                    line = line.strip()
+                    # Choose bullet_style if line starts with a bullet character, otherwise normal_style.
+                    paragraph = Paragraph(line, bullet_style if line.startswith("•") else normal_style)
+                    story.append(paragraph)
+
+                doc.build(story)
+                buffer.seek(0)
+                return buffer
+
         
         pdf_buffer = generate_pdf(st.session_state.analysis_result)
         st.download_button("📥 Download PDF", data=pdf_buffer,file_name="mental_health_report.pdf",mime="application/pdf")
-
-
             
 elif page == "Journal":
     journaling_page()
