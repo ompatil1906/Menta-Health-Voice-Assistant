@@ -158,7 +158,7 @@ if page == "Home":
                             response = st.session_state.assistant.process_user_input(user_input, is_voice=True)
                             st.markdown(response)
                     st.session_state.listening = False
-                    st.experimental_rerun()
+                    st.rerun()
     with cols[1]:
         if st.button("⏹️ Stop Speaking"):
             st.session_state.assistant.stop_speech()
@@ -170,32 +170,36 @@ if page == "Home":
             if report:
                 st.session_state.show_report = True
                 st.session_state.analysis_result = report
-                st.experimental_rerun()
+                st.rerun()
 
     # Report generation section
     if st.session_state.show_report:
         with st.expander("📊 Mental Health Report", expanded=True):
             st.markdown(f'<div class="report-box">{st.session_state.analysis_result}</div>', unsafe_allow_html=True)
 
-            def generate_pdf(report_text):
-                buffer = BytesIO()
-                doc = SimpleDocTemplate(buffer, pagesize=letter)
-                story = []
-                styles = getSampleStyleSheet()
-                style = ParagraphStyle('Custom', parent=styles['Normal'], 
-                                       fontSize=12, leading=14, textColor=colors.black)
-                for line in report_text.split('\n'):
-                    p = Paragraph(line, style)
-                    story.append(p)
-                doc.build(story)
-                buffer.seek(0)
-                return buffer
+            # Generate PDF Report
+        def generate_pdf(report_text):
+            buffer = BytesIO()
+            doc = SimpleDocTemplate(buffer, pagesize=letter)
+            story = []
+            styles = getSampleStyleSheet()
+            normal_style = ParagraphStyle("Normal", parent=styles['Normal'], fontName="Helvetica", fontSize=12, leading=14, spaceAfter=12, spaceBefore=6)
+            bullet_style = ParagraphStyle("Bullet", parent=styles['Normal'], fontName="Helvetica", fontSize=12, leading=14, spaceAfter=12, spaceBefore=6, leftIndent=20, bulletIndent=10)
 
-            pdf_buffer = generate_pdf(st.session_state.analysis_result)
-            st.download_button("📥 Download PDF", data=pdf_buffer,
-                               file_name="mental_health_report.pdf",
-                               mime="application/pdf")
+            for line in report_text.split('\n'):
+                line = line.strip()
+                paragraph = Paragraph(line, bullet_style if line.startswith("•") else normal_style)
+                story.append(paragraph)
 
+            doc.build(story)
+            buffer.seek(0)
+            return buffer
+        
+        pdf_buffer = generate_pdf(st.session_state.analysis_result)
+        st.download_button("📥 Download PDF", data=pdf_buffer,file_name="mental_health_report.pdf",mime="application/pdf")
+
+
+            
 elif page == "Journal":
     journaling_page()
 
