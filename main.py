@@ -72,11 +72,13 @@ Example Start-Up Message:
             except (sr.UnknownValueError, sr.RequestError, sr.WaitTimeoutError):
                 return None
             
-    def process_user_input(self, user_input):
+    def process_user_input(self, user_input, is_voice=False):
+        # Consistent message handling for both voice and text
         self.messages.append({"role": "user", "content": user_input})
         if "user_id" not in st.session_state:
-            st.session_state.user_id = str(uuid.uuid4())  # Assign a unique user ID
+            st.session_state.user_id = str(uuid.uuid4())
         user_id = st.session_state.user_id
+        
         response = self.groq_client.chat.completions.create(
             model="llama-3.3-70b-versatile",
             messages=self.messages,
@@ -88,11 +90,11 @@ Example Start-Up Message:
         self.messages.append({"role": "assistant", "content": ai_response})
         self.current_response = ai_response
         self.store_chat_history(user_input, ai_response, user_id)
-        # Automatically speak the response
-        self.speak(ai_response)
+        
+        if is_voice:
+            self.speak(ai_response)
         
         return ai_response
-
 
     def _speak(self, text):
         """Handle text-to-speech with engine reinitialization"""

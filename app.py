@@ -9,16 +9,14 @@ from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
 from reportlab.platypus import SimpleDocTemplate, Paragraph
 from io import BytesIO
 
-
-
-
 st.set_page_config(
     page_title="Mental Health Voice Assistant",
     page_icon="🧠",
     layout="wide",
-    initial_sidebar_state="collapsed",
+    initial_sidebar_state="expanded",
 )
 
+# Initialize session state variables
 if "assistant" not in st.session_state:
     st.session_state.assistant = MentalHealthAssistant()
 if "listening" not in st.session_state:
@@ -26,154 +24,152 @@ if "listening" not in st.session_state:
 if "analysis_result" not in st.session_state:
     st.session_state.analysis_result = ""
 if "show_history" not in st.session_state:
-        st.session_state.show_history = False
+    st.session_state.show_history = False
 if "show_report" not in st.session_state:
-        st.session_state.show_report = False
+    st.session_state.show_report = False
 if "last_processed_input" not in st.session_state:
-        st.session_state.last_processed_input = ""
-
+    st.session_state.last_processed_input = ""
+if "show_info" not in st.session_state:
+    st.session_state.show_info = False
 st.markdown("""
     <style>
-        body {background-color: #000000; color: white;}  /* Overall page background set to black */
-        
-        .stButton > button {
-            border-radius: 12px; 
-            font-size: 18px; 
-            padding: 15px; 
-            width: 100%; 
-            transition: 0.4s; 
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+        .chat-container {
+            display: flex;
+            margin-bottom: 10px;
         }
-        
-        .stButton > button:hover {
-            background-color: #708090;  
-            color: white;
+        .chat-container.user {
+            justify-content: flex-end;
         }
-        
-        .stChatMessage {
-            border-radius: 12px; 
-            padding: 12px; 
-            margin-bottom: 12px;
+        .chat-container.assistant {
+            justify-content: flex-start;
         }
-        
-        .stChatMessage-user {
-            background-color: #333333; 
-            color: white;
+        .chat-bubble {
+            padding: 10px 15px;
+            border-radius: 15px;
+            max-width: 70%;
+            word-wrap: break-word;
         }
-        
-        .stChatMessage-assistant {
-            background-color: #2d2d2d; 
-            color: #1DB954;
+        .chat-bubble.user {
+            background-color: #DCF8C6;
+            text-align: right;
         }
-        
-        .report-box {
-            background-color: #333333;  /* Report box background set to white */
-            color: white;  /* Text color for the report box */
-            padding: 15px; 
-            border-radius: 12px,;
-            width: 100%;
-            border: 1px solid #444444;
-        }
-
-        .stSlider {
-            background-color: #121212;
+        .chat-bubble.assistant {
+            background-color: #E3E3E3;
+            text-align: left;
         }
     </style>
 """, unsafe_allow_html=True)
 
-st.title("🎤 **Mental Health Assistant**")
-st.markdown("💬 *Talk to your AI companion for emotional support*")
-
-if st.session_state.show_history:
-        st.subheader("📜 Chat History")
+# Left sidebar for chat history
+with st.sidebar:
+    st.header("Chat History")
+    if st.session_state.show_history:
         chat_history = st.session_state.assistant.get_chat_history()
         for entry in chat_history:
             with st.chat_message("user"):
                 st.markdown(entry['user_input'])
             with st.chat_message("assistant"):
                 st.markdown(entry['ai_response'])
+    else:
+        st.info("History is currently hidden. Enable it using the toggle in the main view.")
 
-# Display Chat History with Avatars
+# Main content area
+st.title("🎤 Mental Health Assistant")
+st.markdown("💬 Talk to your AI companion for emotional support")
+
+# Info and history controls
+col1, col2 = st.columns([0.85, 0.15])
+with col1:
+    if st.session_state.show_info:
+        with st.expander("ℹ️ About Bot", expanded=True):
+            st.markdown("""
+                🎤 **Voice activated mental health companion**  
+                🧠 Detects mental wellness and emotional state  
+                🔊 Speaks responses aloud for natural interaction  
+                💬 Chat interface for text-based communication  
+                📊 Generates detailed mental health reports  
+                📥 Export your session history as PDF  
+            """)
+with col2:
+    st.button("ℹ️ Toggle Info", on_click=lambda: st.session_state.update(show_info=not st.session_state.show_info))
+    st.button("📜 Toggle History", on_click=lambda: st.session_state.update(show_history=not st.session_state.show_history))
+
+# Display chat messages
 for message in st.session_state.assistant.messages:
     if message["role"] == "system":
-        continue  # Skip system messages
-    with st.chat_message(message["role"], avatar="👤" if message["role"] == "user" else "🤖"):
-        st.markdown(message["content"])
+        continue
 
-# Sidebar for additional info and support
-with st.sidebar:
-    st.subheader("ℹ️ About Bot")
-    st.markdown("🎤 *Voice activated mental health companion*")
-    st.markdown("🧠 *Detects mental wellness and emotional state*")
-    st.markdown("🔊 *Speaks responses aloud, fostering interaction*")
-    st.markdown("💬 *Easy to use: Chat with AI for mental health support*")
-    if st.button("📜 Show Chat History" if not st.session_state.show_history else "❌ Hide History"):
-        st.session_state.show_history = not st.session_state.show_history
+    role_class = "user" if message["role"] == "user" else "assistant"
+    avatar = "👤" if message["role"] == "user" else "🤖"
 
-col1, col2, col3 = st.columns(3)
-with col1:
-    listen_btn = st.button(
-        "🎙️ Start Listening" if not st.session_state.listening else "🔴 Stop Listening"
-    )
-with col2:
-    stop_btn = st.button("⏹️ Stop Speaking")
-with col3:
-    detect_btn = st.button("🧠 Generate Report")
+    st.markdown(f"""
+        <div class="chat-container {role_class}">
+            <div class="chat-bubble {role_class}">
+                <b>{avatar}</b> {message["content"]}
+            </div>
+        </div>
+    """, unsafe_allow_html=True)
 
-if listen_btn:
-    st.session_state.listening = not st.session_state.listening
-    if st.session_state.listening:
-        st.info("🎤 Listening... Speak now!")
-        user_input = st.session_state.assistant.recognize_speech()
-        if user_input:
-            st.session_state.listening = False
-            with st.chat_message("user", avatar="👤"):
-                st.markdown(user_input)
-            with st.chat_message("assistant", avatar="🤖"):
-                with st.spinner("Typing..."):
-                    ai_response = st.session_state.assistant.process_user_input(user_input)
-                    time.sleep(1)
-                    st.markdown(ai_response)
+# Chat input and processing
+if prompt := st.chat_input("Type your message or click microphone to speak..."):
+    with st.chat_message("user", avatar="👤"):
+        st.markdown(prompt)
+    with st.chat_message("assistant", avatar="🤖"):
+        with st.spinner("Analyzing..."):
+            response = st.session_state.assistant.process_user_input(prompt)
+            st.markdown(response)
+
+# Voice controls at bottom
+st.markdown("---")
+cols = st.columns(3)
+with cols[0]:
+    if st.button("🎙️ Start Listening" if not st.session_state.listening else "🔴 Stop Listening"):
+        st.session_state.listening = not st.session_state.listening
+        if st.session_state.listening:
+            user_input = st.session_state.assistant.recognize_speech()
+            if user_input:
+                with st.chat_message("user", avatar="👤"):
+                    st.markdown(user_input)
+                with st.chat_message("assistant", avatar="🤖"):
+                    with st.spinner("Analyzing..."):
+                        response = st.session_state.assistant.process_user_input(user_input, is_voice=True)
+                        st.markdown(response)
+                st.session_state.listening = False
+                st.rerun()
+with cols[1]:
+    if st.button("⏹️ Stop Speaking"):
+        st.session_state.assistant.stop_speech()
+with cols[2]:
+    if st.button("📊 Generate Report"):
+        if "user_id" not in st.session_state:
+            st.session_state.user_id = str(uuid.uuid4())
+        report = st.session_state.assistant.generate_report_for_user(st.session_state.user_id)
+        if report:
+            st.session_state.show_report = True
+            st.session_state.analysis_result = report
             st.rerun()
 
-if stop_btn:
-    st.session_state.assistant.stop_speech()
-    st.success("🔇 Speech stopped.")
-    st.rerun()
-
-if detect_btn:
-    if "user_id" not in st.session_state:
-        st.session_state.user_id = str(uuid.uuid4())
-    user_id = st.session_state.user_id
-    report = st.session_state.assistant.generate_report_for_user(user_id)
-    if report:
-        st.session_state.show_report = True
-        st.session_state.analysis_result = report
-    else:
-        st.warning("No conversation history detected.")
-    st.rerun()
-
+# Report generation section
 if st.session_state.show_report:
-    with st.expander("📊 **Mental Health Report**", expanded=True):
+    with st.expander("📊 Mental Health Report", expanded=True):
         st.markdown(f'<div class="report-box">{st.session_state.analysis_result}</div>', unsafe_allow_html=True)
-
-
-
-    # Generate PDF Report
-    def generate_pdf(report_text):
+        
+        def generate_pdf(report_text):
             buffer = BytesIO()
             doc = SimpleDocTemplate(buffer, pagesize=letter)
             story = []
             styles = getSampleStyleSheet()
-            normal_style = ParagraphStyle("Normal", parent=styles['Normal'], fontName="Helvetica", fontSize=12, leading=14, spaceAfter=12, spaceBefore=6)
+            style = ParagraphStyle('Custom', parent=styles['Normal'], 
+                                 fontSize=12, leading=14, textColor=colors.black)
             for line in report_text.split('\n'):
-                line = line.strip()
-                paragraph = Paragraph(line, normal_style)
-                story.append(paragraph)
-
+                p = Paragraph(line, style)
+                story.append(p)
             doc.build(story)
             buffer.seek(0)
             return buffer
 
-    pdf_buffer = generate_pdf(st.session_state.analysis_result)
-    st.download_button(label="📥 Download PDF", data=pdf_buffer, file_name="mental_health_report.pdf", mime="application/pdf")
+        pdf_buffer = generate_pdf(st.session_state.analysis_result)
+        st.download_button("📥 Download PDF", data=pdf_buffer, 
+                         file_name="mental_health_report.pdf", 
+                         mime="application/pdf")
+        
