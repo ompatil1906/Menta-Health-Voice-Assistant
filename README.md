@@ -1,2 +1,2 @@
-# Menta-Health-Voice-Assistant
+# Mental Health Voice Assistant
 Developer :- Om Patil
