@@ -55,17 +55,16 @@ st.markdown("""
             }
 
             .stButton > button {
-                border-radius: 12px; 
-                font-size: 16px; 
-                padding: 12px; 
-                width: 100%; 
-                transition: 0.3s;
-                background-color: rgb(173, 149, 213); 
-                color: white;
+                background-color: #9575CD !important;
+                color: white !important;
+                font-size: 19px !important; 
+                width:85%;
+                transform: scale(1.05); /* Slightly enlarge active tab */
+                box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.2); /* More depth */
             }
 
             .stButton > button:hover {
-                background-color: rgb(173, 149, 213);
+                background-color: #D1C4E9 !important;            
             }
     
             .stChatMessage {
@@ -83,15 +82,47 @@ st.markdown("""
                 background-color: #2d2d2d; 
                 color:rgb(217, 205, 235);
             }
+            div[data-testid="stHorizontalBlock"] {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 15px !important;
+        }
 
+        /* Style the individual radio buttons */
+        div[data-testid="stRadio"] label {
+            font-size: 18px !important;
+            font-weight: bold !important;
+            color: #6B52AE !important;  /* Purple */
+            background-color: #EDE7F6 !important;
+            border-radius: 25px !important; /* More rounded */
+            padding: 14px 22px !important; /* Increased padding */
+            margin: 8px !important; /* Adds spacing between options */
+            transition: all 0.3s ease-in-out;
+            box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.1); /* Soft shadow */
+            cursor: pointer;
+        }
+
+        /* Hover effect */
+        div[data-testid="stRadio"] label:hover {
+            background-color: #D1C4E9 !important;
+        }
+
+        /* Active (selected) button */
+        div[data-testid="stRadio"] label[data-testid="stMarkdownContainer"] {
+            background-color: #9575CD !important;
+            color: white !important;
+            font-size: 19px !important;
+            transform: scale(1.05); /* Slightly enlarge active tab */
+            box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.2); /* More depth */
+        }
             .stMarkdown { font-size: 16px; }
         </style>
     """, unsafe_allow_html=True)
 
 # Navigation bar using horizontal radio buttons
-page = st.radio("Navigation", ["Home", "Journal", "Podcast"], horizontal=True)
+page = st.radio("Navigation", ["🏠 Home", "📖 Journal", "🎙 Podcast"], horizontal=True)
 
-if page == "Home":
+if page == "🏠 Home":
     # Sidebar for chat history (only relevant to the Home page)
     with st.sidebar:
         st.button("📜 Show History", on_click=lambda: st.session_state.update(show_history=not st.session_state.show_history))
@@ -232,10 +263,33 @@ if page == "Home":
         pdf_buffer = generate_pdf(st.session_state.analysis_result)
         st.download_button("📥 Download PDF", data=pdf_buffer,file_name="Mental_health_report.pdf",mime="application/pdf")
             
-elif page == "Journal":
+elif page == "📖 Journal":
     journaling_page()
+    with st.sidebar:
+        st.button("📜 Show History", on_click=lambda: st.session_state.update(show_history=not st.session_state.show_history))
+        if st.session_state.show_history:
+            chat_history = st.session_state.assistant.get_chat_history()
+            for entry in chat_history:
+                with st.chat_message("user"):
+                    st.markdown(entry['user_input'])
+                with st.chat_message("assistant"):
+                    st.markdown(entry['ai_response'])
+        else:
+            st.info("History is currently hidden. Please Click on Show History in the main view.")
 
-elif page == "Podcast":
+elif page == "🎙 Podcast":
     st.title("🎙️ Podcast")
     st.markdown("Listen to our curated mental health podcasts:")
     st.write("Podcast content or links would be displayed here.")
+    with st.sidebar:
+        st.button("📜 Show History", on_click=lambda: st.session_state.update(show_history=not st.session_state.show_history))
+        if st.session_state.show_history:
+            chat_history = st.session_state.assistant.get_chat_history()
+            for entry in chat_history:
+                with st.chat_message("user"):
+                    st.markdown(entry['user_input'])
+                with st.chat_message("assistant"):
+                    st.markdown(entry['ai_response'])
+        else:
+            st.info("History is currently hidden. Please Click on Show History in the main view.")
+
