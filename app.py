@@ -94,7 +94,7 @@ page = st.radio("Navigation", ["Home", "Journal", "Podcast"], horizontal=True)
 if page == "Home":
     # Sidebar for chat history (only relevant to the Home page)
     with st.sidebar:
-        st.header("Chat History")
+        st.button("📜 Show History", on_click=lambda: st.session_state.update(show_history=not st.session_state.show_history))
         if st.session_state.show_history:
             chat_history = st.session_state.assistant.get_chat_history()
             for entry in chat_history:
@@ -103,7 +103,7 @@ if page == "Home":
                 with st.chat_message("assistant"):
                     st.markdown(entry['ai_response'])
         else:
-            st.info("History is currently hidden. Please Click on **Show History** in the main view.")
+            st.info("History is currently hidden. Please Click on *Show History* in the main view.")
 
     # Main content area for Home (chat interface)
     st.title("🎤 Mental Health Assistant")
@@ -124,8 +124,6 @@ if page == "Home":
                 """)
     with col2:
         st.button("ℹ️ About Bot", on_click=lambda: st.session_state.update(show_info=not st.session_state.show_info))
-        st.button("📜 Show History", on_click=lambda: st.session_state.update(show_history=not st.session_state.show_history))
-
     # Display chat messages
     for message in st.session_state.assistant.messages:
         if message["role"] == "system":
