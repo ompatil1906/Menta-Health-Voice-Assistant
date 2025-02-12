@@ -3,4 +3,7 @@ secrets.toml
 .streamlit/
 /.streamlit
 /.streamlit/secrets.toml
+<<<<<<< HEAD
 .env
+=======
+>>>>>>> 9af100cd3ca292b45197a8a279315e1cebd4391d
