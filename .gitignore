@@ -3,4 +3,3 @@ secrets.toml
 .streamlit/
 /.streamlit
 /.streamlit/secrets.toml
-.env
