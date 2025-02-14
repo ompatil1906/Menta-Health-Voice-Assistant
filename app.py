@@ -280,16 +280,4 @@ elif page == "📖 Journal":
 
 elif page == "🎙 Podcast":
     display_podcasts()
-    with st.sidebar:
-        st.button("📜 Show History", on_click=lambda: st.session_state.update(show_history=not st.session_state.show_history))
-        if st.session_state.show_history:
-            chat_history = st.session_state.assistant.get_chat_history()
-            for entry in chat_history:
-                with st.chat_message("user"):
-                    st.markdown(entry['user_input'])
-                with st.chat_message("assistant"):
-                    st.markdown(entry['ai_response'])
-        else:
-            st.info("History is currently hidden. Please Click on Show History in the main view.")
-
 

@@ -2,7 +2,6 @@ import streamlit as st
 from googleapiclient.discovery import build
 import re
 
-# Replace with your YouTube API Key
 YOUTUBE_API_KEY = "AIzaSyCXF_4_9F4FDzN5u9WEuNQZFkcNzH6mYVs"
 
 def get_youtube_podcasts(query, max_results=3):
