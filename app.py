@@ -10,6 +10,7 @@ from reportlab.platypus import SimpleDocTemplate, Paragraph
 from io import BytesIO
 from journal import journaling_page
 import re
+from podcast import display_podcasts
 
 st.set_page_config(
     page_title="Mental Health Voice Assistant",
@@ -278,9 +279,7 @@ elif page == "📖 Journal":
             st.info("History is currently hidden. Please Click on Show History in the main view.")
 
 elif page == "🎙 Podcast":
-    st.title("🎙️ Podcast")
-    st.markdown("Listen to our curated mental health podcasts:")
-    st.write("Podcast content or links would be displayed here.")
+    display_podcasts()
     with st.sidebar:
         st.button("📜 Show History", on_click=lambda: st.session_state.update(show_history=not st.session_state.show_history))
         if st.session_state.show_history:
@@ -292,4 +291,5 @@ elif page == "🎙 Podcast":
                     st.markdown(entry['ai_response'])
         else:
             st.info("History is currently hidden. Please Click on Show History in the main view.")
+
 
