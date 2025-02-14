@@ -22,6 +22,9 @@ st.set_page_config(
 # Initialize session state variables
 if "assistant" not in st.session_state:
     st.session_state.assistant = MentalHealthAssistant()
+    st.session_state.assistant.messages.append(
+        {"role": "assistant", "content": "Hello! I'm ElevateMind, your mental health Assistant. How are you feeling today? 😊"}
+    )
 if "listening" not in st.session_state:
     st.session_state.listening = False
 if "analysis_result" not in st.session_state:

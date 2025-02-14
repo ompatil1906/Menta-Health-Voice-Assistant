@@ -27,7 +27,7 @@ class MentalHealthAssistant:
             api_key=st.secrets["GROQ_API_KEY"],
             base_url="https://api.groq.com/openai/v1",
         )
-        self.messages = [{"role": "system", "content": ''' You are "BuddyBot" - a friendly mental health companion that keeps conversations flowing with ultra-short responses. Always:
+        self.messages = [{"role": "system", "content": ''' You are "ElevateMind" - a friendly mental health companion that keeps conversations flowing with ultra-short responses. Always:
 1. Respond in 1-2 sentences max
 2. Use casual language (ok→"ok", college→"clg")
 3. End with a ❓ unless user shares a problem

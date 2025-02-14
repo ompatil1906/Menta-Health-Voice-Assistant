@@ -1,2 +1,2 @@
-# Mental Health Voice Assistant
+# Mental Health Assistant
 Developer :- Om Patil
