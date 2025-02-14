@@ -31,18 +31,19 @@ def extract_mood_from_report(report_text):
     Extracts the mood/emotional state from the generated mental health report.
     """
     mood_keywords = {
-        "happy": ["positive", "happy", "content", "joyful"],
+        "happy": ["positive","happy", "content", "joyful"],
         "sad": ["sad", "depressed", "down", "low"],
         "stressed": ["stressed", "overwhelmed", "tense", "pressure"],
         "anxious": ["anxious", "worried", "nervous", "fearful"],
-        "calm": ["calm", "relaxed", "peaceful", "mindful"]
+        "calm": ["calm", "relaxed", "peaceful", "mindful"],
+        "general":[ "Neutral"]
     }
 
     report_text = report_text.lower()
     for mood, keywords in mood_keywords.items():
         if any(keyword in report_text for keyword in keywords):
             return mood
-    return "general"  # Default mood if no match
+        else:"general"
 
 def display_podcasts():
     """
