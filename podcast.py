@@ -46,9 +46,6 @@ def extract_mood_from_report(report_text):
         else:"general"
 
 def display_podcasts():
-    """
-    Displays YouTube podcast recommendations based on the generated mental health report.
-    """
     st.title("🎙 Podcast Recommendations")
 
     if "analysis_result" in st.session_state and st.session_state.analysis_result:
