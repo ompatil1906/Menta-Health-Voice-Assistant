@@ -1,13 +1,11 @@
 import streamlit as st
 from googleapiclient.discovery import build
-import re
 
+# YouTube API Key
 YOUTUBE_API_KEY = "AIzaSyCXF_4_9F4FDzN5u9WEuNQZFkcNzH6mYVs"
 
 def get_youtube_podcasts(query, max_results=3):
-    """
-    Fetches top YouTube videos based on a search query.
-    """
+    """Fetches top YouTube videos based on a search query."""
     youtube = build("youtube", "v3", developerKey=YOUTUBE_API_KEY)
 
     request = youtube.search().list(
@@ -27,23 +25,25 @@ def get_youtube_podcasts(query, max_results=3):
     return video_data
 
 def extract_mood_from_report(report_text):
-    """
-    Extracts the mood/emotional state from the generated mental health report.
-    """
+    """Extracts the mood from the generated mental health report."""
     mood_keywords = {
-        "happy": ["positive","happy", "content", "joyful"],
-        "sad": ["sad", "depressed", "down", "low"],
-        "stressed": ["stressed", "overwhelmed", "tense", "pressure"],
-        "anxious": ["anxious", "worried", "nervous", "fearful"],
-        "calm": ["calm", "relaxed", "peaceful", "mindful"],
-        "general":[ "Neutral"]
+        "Happy": ["positive", "happy", "content", "joyful"],
+        "Sad": ["sad", "depressed", "down", "low"],
+        "Stressed": ["stressed", "overwhelmed", "tense", "pressure", "burnout"],
+        "Anxious": ["anxious", "worried", "nervous", "fearful"],
+        "Calm": ["calm", "relaxed", "peaceful", "mindful"],
+        "Neutral": ["neutral"]
     }
 
     report_text = report_text.lower()
+    detected_mood = "neutral"  # Default mood
+
     for mood, keywords in mood_keywords.items():
         if any(keyword in report_text for keyword in keywords):
-            return mood
-        else:"general"
+            detected_mood = mood
+            break  # Stop searching after finding the first match
+
+    return detected_mood  # Corrected return statement
 
 def display_podcasts():
     st.title("🎙 Podcast Recommendations")
@@ -51,13 +51,16 @@ def display_podcasts():
     if "analysis_result" in st.session_state and st.session_state.analysis_result:
         mood = extract_mood_from_report(st.session_state.analysis_result)
 
+        # Debugging: Show extracted mood
+        st.write(f"**Detected Mood:** {mood}")
+
         mood_queries = {
-            "happy": "motivational mental health podcast",
-            "sad": "uplifting mental health talks",
-            "stressed": "guided meditation for stress relief",
-            "anxious": "anxiety relief guided meditation",
-            "calm": "peaceful mindfulness meditation",
-            "general": "best mental health podcast"
+            "happy": "motivational self-improvement podcasts",
+            "sad": "uplifting talks on overcoming sadness",
+            "stressed": "stress management techniques podcast",
+            "anxious": "calming mindfulness exercises for anxiety",
+            "calm": "deep relaxation and mindfulness meditation",
+            "neutral": "best mental health podcasts"
         }
 
         query = mood_queries.get(mood, "mental health podcast")
