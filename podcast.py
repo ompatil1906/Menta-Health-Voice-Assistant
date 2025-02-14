@@ -36,7 +36,7 @@ def extract_mood_from_report(report_text):
     }
 
     report_text = report_text.lower()
-    detected_mood = "neutral"  # Default mood
+    detected_mood = "Neutral"  # Default mood
 
     for mood, keywords in mood_keywords.items():
         if any(keyword in report_text for keyword in keywords):
@@ -55,12 +55,12 @@ def display_podcasts():
         st.write(f"**Detected Mood:** {mood}")
 
         mood_queries = {
-            "happy": "motivational self-improvement podcasts",
-            "sad": "uplifting talks on overcoming sadness",
-            "stressed": "stress management techniques podcast",
-            "anxious": "calming mindfulness exercises for anxiety",
-            "calm": "deep relaxation and mindfulness meditation",
-            "neutral": "best mental health podcasts"
+            "Happy": "motivational self-improvement podcasts",
+            "Sad": "uplifting talks on overcoming sadness",
+            "Stressed": "stress management techniques podcast",
+            "Anxious": "calming mindfulness exercises for anxiety",
+            "Calm": "deep relaxation and mindfulness meditation",
+            "Neutral": "best mental health podcasts"
         }
 
         query = mood_queries.get(mood, "mental health podcast")
