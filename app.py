@@ -13,7 +13,7 @@ import re
 from podcast import display_podcasts
 
 st.set_page_config(
-    page_title="Mental Health Assistant",
+    page_title="ElevateMind.io",
     page_icon="🧠",
     layout="wide",
     initial_sidebar_state="expanded",
@@ -22,9 +22,6 @@ st.set_page_config(
 # Initialize session state variables
 if "assistant" not in st.session_state:
     st.session_state.assistant = MentalHealthAssistant()
-    st.session_state.assistant.messages.append(
-        {"role": "assistant", "content": "Hello! I'm ElevateMind, your mental health Assistant. How are you feeling today? 😊"}
-    )
 if "listening" not in st.session_state:
     st.session_state.listening = False
 if "analysis_result" not in st.session_state:
@@ -138,10 +135,10 @@ if page == "🏠 Home":
                 with st.chat_message("assistant"):
                     st.markdown(entry['ai_response'])
         else:
-            st.info("History is currently hidden. Please Click on *Show History* in the main view.")
+            st.info("History is currently hidden. Please Click on **Show History** in the main view.")
 
     # Main content area for Home (chat interface)
-    st.title("🎤 Mental Health Assistant")
+    st.title("🎤 ElevateMind, Your Mental Health Assistant.")
     st.markdown("💬 Talk to your AI companion for emotional support")
 
     # Info and history controls
@@ -279,7 +276,7 @@ elif page == "📖 Journal":
                 with st.chat_message("assistant"):
                     st.markdown(entry['ai_response'])
         else:
-            st.info("History is currently hidden. Please Click on Show History in the main view.")
+            st.info("History is currently hidden. Please Click on **Show History** in the main view.")
 
 elif page == "🎙 Podcast":
     display_podcasts()
@@ -293,7 +290,7 @@ elif page == "🎙 Podcast":
                 with st.chat_message("assistant"):
                     st.markdown(entry['ai_response'])
         else:
-            st.info("History is currently hidden. Please Click on Show History in the main view.")
+            st.info("History is currently hidden. Please Click on **Show History** in the main view.")
 elif page == "📊 Dashboard" :
     with st.sidebar:
         st.button("📜 Show History", on_click=lambda: st.session_state.update(show_history=not st.session_state.show_history))
@@ -305,6 +302,6 @@ elif page == "📊 Dashboard" :
                 with st.chat_message("assistant"):
                     st.markdown(entry['ai_response'])
         else:
-            st.info("History is currently hidden. Please Click on Show History in the main view.")
+            st.info("History is currently hidden. Please Click on **Show History** in the main view.")
 
 
