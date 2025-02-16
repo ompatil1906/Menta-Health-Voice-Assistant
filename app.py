@@ -11,10 +11,11 @@ from io import BytesIO
 from journal import journaling_page
 import re
 from podcast import display_podcasts
+from PIL import Image
 
 st.set_page_config(
     page_title="ElevateMind.io",
-    page_icon="🧠",
+    page_icon=Image.open("logo.jpg"),
     layout="wide",
     initial_sidebar_state="expanded",
 )
