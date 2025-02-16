@@ -27,12 +27,12 @@ def get_youtube_podcasts(query, max_results=3):
 def extract_mood_from_report(report_text):
     """Extracts the mood from the generated mental health report."""
     mood_keywords = {
-        "Happy": ["positive", "happy", "content", "joyful"],
-        "Sad": ["sad", "depressed", "down", "low"],
-        "Stressed": ["stressed", "overwhelmed", "tense", "pressure", "burnout"],
-        "Anxious": ["anxious", "worried", "nervous", "fearful"],
-        "Calm": ["calm", "relaxed", "peaceful", "mindful"],
-        "Neutral": ["neutral"]
+        "Happy": ["positive", "Happy", "content", "joyful"],
+        "Sad": ["Sad", "depressed", "down", "low"],
+        "Stressed": ["stressed","Stressed", "overwhelmed", "tense", "pressure", "burnout"],
+        "Anxious": ["Anxious", "worried", "nervous", "fearful"],
+        "Calm": ["Calm", "relaxed", "peaceful", "mindful"],
+        "Neutral": ["Neutral"]
     }
 
     report_text = report_text.lower()
