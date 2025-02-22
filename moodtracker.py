@@ -25,12 +25,11 @@ def extract_mood_from_report(report_text):
     
     for mood, keywords in mood_keywords.items():
         if any(keyword in report_text for keyword in keywords):
-            print(f"Detected mood: {mood}")  # Debugging
+            print(f"Detected mood: {mood}") 
             return mood
            
     return 'general'
 
-  # Default to neutral if no mood detected
 
 def store_mood_in_db(detected_mood):
     """
@@ -86,15 +85,15 @@ def display_moodtracker():
 
         # Improving visualization
         fig = px.scatter(df, x='timestamp', y='mood', color='mood', symbol='mood',
-                        title='Mood Trends Over Time', labels={'timestamp': 'Time', 'mood': 'Mood'},
-                        color_discrete_map=mood_colors, symbol_map=mood_symbols)
+        title='Mood Trends Over Time', labels={'timestamp': 'Time', 'mood': 'Mood'},
+        color_discrete_map=mood_colors, symbol_map=mood_symbols)
         
         if len(df) > 1:  # Only add trend line if there's more than one point
             fig.add_scatter(x=df['timestamp'], y=df['mood'], mode='lines', line=dict(color='skyblue'), name='Mood Trend')
         
         fig.update_layout(xaxis_title='Time of Day', yaxis_title='Mood',
-                        xaxis_tickangle=-45, template='plotly_white',
-                        title_font_size=20, title_x=0.5, font=dict(size=14))
+        xaxis_tickangle=-45, template='plotly_white',
+        title_font_size=20, title_x=0.5, font=dict(size=14))
         
         st.plotly_chart(fig)
     else:
