@@ -71,13 +71,26 @@ Example Start-Up Message:
                 return text
             except (sr.UnknownValueError, sr.RequestError, sr.WaitTimeoutError):
                 return None
-            
+
+    def get_recent_chat_history(self, user_id, limit=50):
+        """Retrieve last limit user messages from MongoDB"""
+        history = self.chat_history_collection.find(
+            {"user_id": user_id}
+        ).sort("timestamp", -1).limit(limit)
+
+        return [{"role": "user", "content": entry["user_input"]} for entry in history]+[{"role": "assistant", "content": entry["ai_response"]} for entry in history]
+
     def process_user_input(self, user_input, is_voice=False):
         # Consistent message handling for both voice and text
         self.messages.append({"role": "user", "content": user_input})
         if "user_id" not in st.session_state:
             st.session_state.user_id = str(uuid.uuid4())
         user_id = st.session_state.user_id
+
+        recent_history = self.get_recent_chat_history(user_id)
+
+        # Construct new prompt including past conversations
+        messages = recent_history + [{"role": "user", "content":user_input}]
         
         response = self.groq_client.chat.completions.create(
             model="llama-3.3-70b-versatile",

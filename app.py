@@ -12,6 +12,8 @@ from journal import journaling_page
 import re
 from podcast import display_podcasts
 from PIL import Image
+from moodtracker import display_moodtracker
+
 
 st.set_page_config(
     page_title="ElevateMind.io",
@@ -122,7 +124,7 @@ st.markdown("""
     """, unsafe_allow_html=True)
 
 # Navigation bar using horizontal radio buttons
-page = st.radio("Navigation", ["🏠 Home", "📖 Journal", "🎙 Podcast"], horizontal=True)
+page = st.radio("Navigation", ["🏠 Home", "📖 Journal", "🎙 Podcast","Mood Tracker"], horizontal=True)
 
 if page == "🏠 Home":
     # Sidebar for chat history (only relevant to the Home page)
@@ -293,5 +295,17 @@ elif page == "🎙 Podcast":
         else:
             st.info("History is currently hidden. Please Click on **Show History** in the main view.")
 
-
+elif page == "Mood Tracker":
+    display_moodtracker()
+    with st.sidebar:
+        st.button("📜 Show History", on_click=lambda: st.session_state.update(show_history=not st.session_state.show_history))
+        if st.session_state.show_history:
+            chat_history = st.session_state.assistant.get_chat_history()
+            for entry in chat_history:
+                with st.chat_message("user"):
+                    st.markdown(entry['user_input'])
+                with st.chat_message("assistant"):
+                    st.markdown(entry['ai_response'])
+        else:
+            st.info("History is currently hidden. Please Click on **Show History** in the main view.")
 
