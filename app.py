@@ -38,7 +38,6 @@ if "last_processed_input" not in st.session_state:
 if "show_info" not in st.session_state:
     st.session_state.show_info = False
 
-# Custom CSS styling
 st.markdown("""
         <style>
             body { background-color: #121212; color: white; margin-right:100px}
@@ -51,13 +50,11 @@ st.markdown("""
                 padding: 10px !important;
                 transition: border-color 0.3s ease-in-out !important;
             }
-
             .stTextInput > div > div > input:focus {
                 border: 2px solid rgb(173, 149, 213) !important; /* Adds a soft purple focus border */
                 outline: none !important;
                 text-color:black;
             }
-
             .stButton > button {
                 background-color: #9575CD !important;
                 color: white !important;
@@ -66,22 +63,18 @@ st.markdown("""
                 transform: scale(1.05); /* Slightly enlarge active tab */
                 box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.2); /* More depth */
             }
-
             .stButton > button:hover {
                 background-color: #D1C4E9 !important;            
             }
-    
             .stChatMessage {
                 border-radius: 12px; 
                 padding: 12px; 
                 margin-bottom: 12px;
             }
-
             .stChatMessage-user {
                 background-color: #333333; 
                 color: white;
             }
-
             .stChatMessage-assistant {
                 background-color: #2d2d2d; 
                 color:rgb(217, 205, 235);
@@ -91,7 +84,6 @@ st.markdown("""
             justify-content: center;
             margin-bottom: 15px !important;
         }
-
         /* Style the individual radio buttons */
         div[data-testid="stRadio"] label {
             font-size: 18px !important;
@@ -105,12 +97,10 @@ st.markdown("""
             box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.1); /* Soft shadow */
             cursor: pointer;
         }
-
         /* Hover effect */
         div[data-testid="stRadio"] label:hover {
             background-color: #D1C4E9 !important;
         }
-
         /* Active (selected) button */
         div[data-testid="stRadio"] label[data-testid="stMarkdownContainer"] {
             background-color: #9575CD !important;
@@ -123,11 +113,11 @@ st.markdown("""
         </style>
     """, unsafe_allow_html=True)
 
-# Navigation bar using horizontal radio buttons
+#Navigation bar 
 page = st.radio("Navigation", ["🏠 Home", "📖 Journal", "🎙 Podcast","Mood Tracker"], horizontal=True)
 
 if page == "🏠 Home":
-    # Sidebar for chat history (only relevant to the Home page)
+    #sidebar
     with st.sidebar:
         st.button("📜 Show History", on_click=lambda: st.session_state.update(show_history=not st.session_state.show_history))
         if st.session_state.show_history:
@@ -140,11 +130,11 @@ if page == "🏠 Home":
         else:
             st.info("History is currently hidden. Please Click on **Show History** in the main view.")
 
-    # Main content area for Home (chat interface)
+    #chat interface
     st.title("🎤 ElevateMind, Your Mental Health Assistant.")
     st.markdown("💬 Talk to your AI companion for emotional support")
 
-    # Info and history controls
+    # info and history controls
     col1, col2 = st.columns([0.85, 0.15])
     with col1:
         if st.session_state.show_info:
@@ -159,7 +149,8 @@ if page == "🏠 Home":
                 """)
     with col2:
         st.button("ℹ️ About Bot", on_click=lambda: st.session_state.update(show_info=not st.session_state.show_info))
-    # Display chat messages
+    
+    #Display chat messages
     for message in st.session_state.assistant.messages:
         if message["role"] == "system":
             continue
@@ -175,7 +166,7 @@ if page == "🏠 Home":
                 response = st.session_state.assistant.process_user_input(prompt)
                 st.markdown(response)
 
-    # Voice controls at bottom
+    # Voice controls 
     st.markdown("---")
     cols = st.columns(3)
     with cols[0]:
@@ -206,7 +197,7 @@ if page == "🏠 Home":
                 st.session_state.analysis_result = report
                 st.rerun()
 
-    # Report generation section
+    # Report generation
     if st.session_state.show_report:
         with st.expander("📊 Mental Health Report", expanded=True):
             st.markdown(f'<div class="report-box">{st.session_state.analysis_result}</div>', unsafe_allow_html=True)
@@ -250,12 +241,9 @@ if page == "🏠 Home":
                 )
 
                 for line in report_text.split('\n'):
-                    # Remove markdown bold markers "**"
                     line = line.replace("**", "")
-                    # Remove emojis using the compiled pattern.
                     line = emoji_pattern.sub(r'', line)
                     line = line.strip()
-                    # Choose bullet_style if line starts with a bullet character, otherwise normal_style.
                     paragraph = Paragraph(line, bullet_style if line.startswith("•") else normal_style)
                     story.append(paragraph)
 

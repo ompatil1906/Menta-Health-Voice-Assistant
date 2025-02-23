@@ -4,53 +4,58 @@ import pandas as pd
 import streamlit as st
 import plotly.express as px
 from datetime import datetime
+import pytz  
 
-# Connect to MongoDB
 client = MongoClient(os.getenv("MONGO_URI"))
 db = client["mental_health"]
 moods_collection = db["mood_logs"]
 
+# Define local timezone (change it if needed)
+local_timezone = pytz.timezone("Asia/Kolkata") 
+
 def extract_mood_from_report(report_text):
     """Extracts the mood from the generated mental health report."""
     mood_keywords = {
-        "happy": ["positive", "happy", "content", "joyful"],
-        "sad": ["sad", "depressed", "down", "low"],
-        "stressed": ["stressed", "overwhelmed", "tense", "pressure", "burnout"],
-        "anxious": ["anxious", "worried", "nervous", "fearful"],
-        "calm": ["calm", "relaxed", "peaceful", "mindful"],
-        "neutral": ["neutral"]
+        "Happy": ["positive", "happy", "content", "joyful"],
+        "Sad": ["sad", "depressed", "down", "low"],
+        "Stressed": ["stressed", "overwhelmed", "tense", "pressure", "burnout"],
+        "Anxious": ["anxious", "worried", "nervous", "fearful"],
+        "Calm": ["calm", "relaxed", "peaceful", "mindful"],
+        "Neutral": ["neutral"]
     }
 
     report_text = report_text.lower()
-    
+    detected_mood = "Neutral" 
+
     for mood, keywords in mood_keywords.items():
         if any(keyword in report_text for keyword in keywords):
-            print(f"Detected mood: {mood}") 
-            return mood
-           
-    return 'general'
+            detected_mood = mood
+            break 
+
+    return detected_mood 
 
 
 def store_mood_in_db(detected_mood):
-    """
-    Stores the extracted mood into the MongoDB database.
-    """
     mood_entry = {
         "mood": detected_mood.lower(),
-        "timestamp": datetime.utcnow()
+        "timestamp": datetime.utcnow()  # Store timestamp in UTC
     }
     moods_collection.insert_one(mood_entry)
 
 def get_all_moods():
-    """
-    Retrieves all stored moods from the database.
-    """
-    return list(moods_collection.find({}, {"_id": 0, "mood": 1, "timestamp": 1}))
+    moods = list(moods_collection.find({}, {"_id": 0, "mood": 1, "timestamp": 1}))
+
+    for mood in moods:
+        utc_time = mood["timestamp"]
+        local_time = utc_time.replace(tzinfo=pytz.utc).astimezone(local_timezone)
+        mood["timestamp"] = local_time.strftime("%Y-%m-%d %H:%M:%S")  # Convert to readable format
+
+    return moods
 
 def display_moodtracker():
     if "analysis_result" in st.session_state and st.session_state.analysis_result:
         mood = extract_mood_from_report(st.session_state.analysis_result)
-        store_mood_in_db(mood)  # Store the mood in the database
+        store_mood_in_db(mood)  
         st.markdown(f"Your mood: **{mood.capitalize()}**")
     else:
         st.warning("⚠ Please generate your Mental Health Report first!")
@@ -61,7 +66,7 @@ def display_moodtracker():
         df['timestamp'] = pd.to_datetime(df['timestamp'])
         df = df[['timestamp', 'mood']]
 
-        # Define color and symbol mappings for different moods
+        #colors and symbols
         mood_colors = {
             "happy": "yellow",
             "sad": "blue",
@@ -70,7 +75,6 @@ def display_moodtracker():
             "calm": "green",
             "neutral": "gray"
         }
-
         mood_symbols = {
             "happy": "circle",
             "sad": "diamond",
@@ -83,7 +87,7 @@ def display_moodtracker():
         df['color'] = df['mood'].map(mood_colors)
         df['symbol'] = df['mood'].map(mood_symbols)
 
-        # Improving visualization
+       
         fig = px.scatter(df, x='timestamp', y='mood', color='mood', symbol='mood',
         title='Mood Trends Over Time', labels={'timestamp': 'Time', 'mood': 'Mood'},
         color_discrete_map=mood_colors, symbol_map=mood_symbols)
