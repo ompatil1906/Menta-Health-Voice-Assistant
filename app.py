@@ -10,7 +10,7 @@ from reportlab.platypus import SimpleDocTemplate, Paragraph
 from io import BytesIO
 from journal import journaling_page
 import re
-from podcast import display_podcasts
+from video import display_podcasts
 from PIL import Image
 from moodtracker import display_moodtracker
 
@@ -114,7 +114,7 @@ st.markdown("""
     """, unsafe_allow_html=True)
 
 #Navigation bar 
-page = st.radio("Navigation", ["🏠 Home", "📖 Journal", "🎙 Podcast","Mood Tracker"], horizontal=True)
+page = st.radio("Navigation", ["🏠 Home", "📖 Journal", "🎙 Recommended Video","Mood Tracker"], horizontal=True)
 
 if page == "🏠 Home":
     #sidebar
@@ -269,7 +269,7 @@ elif page == "📖 Journal":
         else:
             st.info("History is currently hidden. Please Click on **Show History** in the main view.")
 
-elif page == "🎙 Podcast":
+elif page == "🎙 Recommended Video":
     display_podcasts()
     with st.sidebar:
         st.button("📜 Show History", on_click=lambda: st.session_state.update(show_history=not st.session_state.show_history))

@@ -20,9 +20,6 @@ class MentalHealthAssistant:
         self.chat_history_collection = self.db["chat_history"]
 
     def fetch_user_conversation(self, user_id):
-        """
-        Fetches the chat history of a specific user from MongoDB.
-        """
         try:
             user_id = ObjectId(user_id)  
         except:
@@ -38,10 +35,6 @@ class MentalHealthAssistant:
         return conversation_text
 
 def generate_report(conversation_text):
-    """5
-    Generates a highly structured and supportive mental health report.
-    """
-
     # Define the AI prompt
     prompt = f''' "You are a psychologist AI. Analyze the user's conversation and detect their mental health status.\n\n"
     "conversation_text: "{conversation_text}
@@ -75,9 +68,6 @@ def generate_report(conversation_text):
     return ai_generated_report
 
 def format_report(report_text):
-    """
-    Formats the AI-generated report into a structured format.
-    """
     formatted_report = f'''{report_text}
     
     📌 This is an AI-generated assessment. Please consult a professional for clinical advice.

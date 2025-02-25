@@ -78,7 +78,7 @@ def journaling_page():
     entries = get_recent_entries()
     if entries:
         for entry in entries:
-            st.markdown(f"🗓 *{entry['timestamp'].strftime('%Y-%m-%d %H:%M:%S')}*")
+            st.markdown(f"📜 *{entry['timestamp'].strftime('%Y-%m-%d %H:%M:%S')}*")
             st.markdown(f"> {entry['text'].splitlines()[0]} ... ")
             show_more = st.toggle(f"Read More", key=entry["timestamp"])
 

@@ -16,9 +16,9 @@ local_timezone = pytz.timezone("Asia/Kolkata")
 def extract_mood_from_report(report_text):
     """Extracts the mood from the generated mental health report."""
     mood_keywords = {
-        "Happy": ["positive", "happy", "content", "joyful"],
+        "Stressed": ["stressed", "Stressed","overwhelmed", "tense", "pressure", "burnout"],
         "Sad": ["sad", "depressed", "down", "low"],
-        "Stressed": ["stressed", "overwhelmed", "tense", "pressure", "burnout"],
+        "Happy": ["positive", "happy", "content", "joyful"],
         "Anxious": ["anxious", "worried", "nervous", "fearful"],
         "Calm": ["calm", "relaxed", "peaceful", "mindful"],
         "Neutral": ["neutral"]

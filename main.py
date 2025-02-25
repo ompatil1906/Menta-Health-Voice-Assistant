@@ -5,7 +5,7 @@ import pyttsx3
 import threading
 from openai import OpenAI
 from dotenv import load_dotenv
-import re  # Import regex for text cleaning
+import re
 from report_generator import generate_report
 from pymongo import MongoClient
 import uuid
@@ -88,8 +88,6 @@ Example Start-Up Message:
         user_id = st.session_state.user_id
 
         recent_history = self.get_recent_chat_history(user_id)
-
-        # Construct new prompt including past conversations
         messages = recent_history + [{"role": "user", "content":user_input}]
         
         response = self.groq_client.chat.completions.create(
@@ -115,17 +113,14 @@ Example Start-Up Message:
         self.speech_engine = pyttsx3.init()
         self.speech_engine.setProperty("rate", 150)
         
-        # Clean the text to remove emojis and symbols
+        # Clean the text
         clean_text = self.clean_text(text)
-
-        #Get Female Voice
         voices = self.speech_engine.getProperty('voices')
         for voice in voices:
             if "zira" in voice.name.lower():
                 self.speech_engine.setProperty('voice', voice.id)
                 break
 
-        # Add event callbacks for proper cleanup
         def on_start(name):
             if self._stop_speaking:
                 self.speech_engine.stop()
@@ -139,11 +134,8 @@ Example Start-Up Message:
         
         self.speech_engine.say(clean_text)
         self.speech_engine.runAndWait()
-        self.speech_engine = None  # Clean up engine after use
-
+        self.speech_engine = None 
     def clean_text(self, text):
-        """Remove emojis and non-alphanumeric characters from the text"""
-        # Regex to remove emojis and special characters
         return re.sub(r'[^\w\s,.!?]', '', text)
 
     def speak(self, text):
@@ -161,7 +153,6 @@ Example Start-Up Message:
         return True
 
     def stop_speech(self):
-        """Stop current speech"""
         self._stop_speaking = True
         if self.speech_engine:
             self.speech_engine.stop()
@@ -173,12 +164,10 @@ Example Start-Up Message:
         return self.speech_thread and self.speech_thread.is_alive()
     
     def get_chat_history(self):
-        """Retrieve past conversations from MongoDB"""
         history = self.chat_history_collection.find().sort("timestamp", -1)
         return [{"user_input": entry["user_input"], "ai_response": entry["ai_response"]} for entry in history]
     
     def store_chat_history(self, user_input, ai_response, user_id):
-            """Store user conversation in MongoDB"""
             chat_entry = {
                 "user_input": user_input,
                 "ai_response": ai_response,
@@ -188,7 +177,6 @@ Example Start-Up Message:
             self.chat_history_collection.insert_one(chat_entry)
 
     def generate_report_for_user(self, user_id):
-        """Generate a mental health report based on the user's chat history"""
         try:
             user_id = ObjectId(user_id)
         except:

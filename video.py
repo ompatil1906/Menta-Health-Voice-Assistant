@@ -5,7 +5,6 @@ from googleapiclient.discovery import build
 YOUTUBE_API_KEY = "AIzaSyCXF_4_9F4FDzN5u9WEuNQZFkcNzH6mYVs"
 
 def get_youtube_podcasts(query, max_results=3):
-    """Fetches top YouTube videos based on a search query."""
     youtube = build("youtube", "v3", developerKey=YOUTUBE_API_KEY)
 
     request = youtube.search().list(
@@ -25,11 +24,11 @@ def get_youtube_podcasts(query, max_results=3):
     return video_data
 
 def extract_mood_from_report(report_text):
-    """Extracts the mood from the generated mental health report."""
     mood_keywords = {
-        "Happy": ["positive", "happy", "content", "joyful"],
+
+        "Stressed": ["stressed", "Stressed","overwhelmed", "tense", "pressure", "burnout"],
         "Sad": ["sad", "depressed", "down", "low"],
-        "Stressed": ["stressed", "overwhelmed", "tense", "pressure", "burnout"],
+        "Happy": ["positive", "happy", "content", "joyful"],
         "Anxious": ["anxious", "worried", "nervous", "fearful"],
         "Calm": ["calm", "relaxed", "peaceful", "mindful"],
         "Neutral": ["neutral"]
@@ -46,7 +45,7 @@ def extract_mood_from_report(report_text):
     return detected_mood  
 
 def display_podcasts():
-    st.title("🎙 Podcast Recommendations")
+    st.title("🎙 Recommended Video")
 
     if "analysis_result" in st.session_state and st.session_state.analysis_result:
         mood = extract_mood_from_report(st.session_state.analysis_result)
