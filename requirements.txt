@@ -7,3 +7,4 @@ pyaudio
 openai
 pymongo
 reportlab
+psycopg2-binary
